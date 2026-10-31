@@ -24,7 +24,7 @@ Phần cuối file có sẵn các prompt tiện ích (giải thích, sửa lỗi
 Mục tiêu: hoàn thiện khung dự án chạy được. CHƯA làm nghiệp vụ.
 
 Việc cần làm:
-1. Phiên bản: dự án này phải dùng Java 17 và Spring Boot 3.5.16 (bản 3.x cuối cùng) để khớp tài liệu. Kiểm tra pom.xml: nếu parent đang là bản 4.x thì chuyển về 3.5.16 và đổi các starter cho đúng bản 3.5 (spring-boot-starter-web, -thymeleaf, -data-jpa, -security, -validation, -mail, -test; mysql-connector-j; h2; spring-security-test; devtools). Thêm thymeleaf-extras-springsecurity6 và WebJars cho Bootstrap 5 và Chart.js nếu thiếu (theo cách đúng với bản 3.5). Không thêm Lombok. Sau khi sửa, chạy "mvn clean test" để chắc chắn dự án build được.
+1. Phiên bản: dự án này phải dùng Java 25 và Spring Boot 3.5.16 (bản 3.x cuối cùng) để khớp tài liệu. Kiểm tra pom.xml: nếu parent đang là bản 4.x thì chuyển về 3.5.16 và đổi các starter cho đúng bản 3.5 (spring-boot-starter-web, -thymeleaf, -data-jpa, -security, -validation, -mail, -test; mysql-connector-j; h2; spring-security-test; devtools). Thêm thymeleaf-extras-springsecurity6 và WebJars cho Bootstrap 5 và Chart.js nếu thiếu (theo cách đúng với bản 3.5). Không thêm Lombok. Sau khi sửa, chạy "mvn clean test" để chắc chắn dự án build được.
 2. Cấu hình: application.properties, application-dev.properties (MySQL qua biến môi trường DB_URL, DB_USERNAME, DB_PASSWORD; ddl-auto=update), application-test.properties (H2). Múi giờ Asia/Ho_Chi_Minh cho JVM, Jackson và Hibernate. Thư mục tải ảnh lấy từ UPLOAD_DIR. Tạo application-local.properties.example (không chứa mật khẩu thật). Cập nhật .gitignore để bỏ application-local.properties và thư mục uploads.
 3. Tạo các package theo mục 3 của PROJECT.md (thêm class placeholder nếu cần để package tồn tại).
 4. Tạo bean Clock (múi giờ Việt Nam), GlobalExceptionHandler và BusinessException, trang lỗi 403/404/500 thân thiện bằng tiếng Việt.
@@ -67,13 +67,14 @@ Khi xong: liệt kê file, giải thích các quan hệ chính và vì sao truy 
 Mục tiêu: đăng ký, đăng nhập, phân quyền 3 vai trò.
 
 Việc cần làm:
-1. Đăng ký khách (họ tên, email, SĐT 10 số bắt đầu bằng 0, mật khẩu ≥ 8 ký tự, nhập lại mật khẩu). Email lưu chữ thường, không trùng ("Email đã được sử dụng."). Mật khẩu băm BCrypt. Vai trò mặc định GUEST.
-2. Đăng nhập bằng Spring Security (form login, UserDetailsService từ User). Sai 5 lần liên tiếp → TEMP_LOCKED 15 phút; hết thời gian tự mở. Tài khoản LOCKED báo "Tài khoản đã bị khóa. Vui lòng liên hệ cơ sở." Thông báo sai: "Email hoặc mật khẩu không chính xác.". Đăng nhập thành công thì xóa bộ đếm sai.
+1. Đăng ký khách (họ tên, email, SĐT 10 số bắt đầu bằng 0, mật khẩu ≥ 8 ký tự, nhập lại mật khẩu). email lưu chữ thường, không trùng ("email đã được sử dụng."). Mật khẩu băm BCrypt. Vai trò mặc định GUEST.
+2. Đăng nhập bằng Spring Security (form login, UserDetailsService từ User). Sai 5 lần liên tiếp → TemP_LOCKED 15 phút; hết thời gian tự mở. Tài khoản LOCKED báo "Tài khoản đã bị khóa. Vui lòng liên hệ cơ sở." Thông báo sai: "email hoặc mật khẩu không chính xác.". Đăng nhập thành công thì xóa bộ đếm sai.
 3. SecurityConfig: công khai (/, /rooms, /room-types/**, /login, /register, /forgot-password, /reset-password, tài nguyên tĩnh); /staff/** cho STAFF và ADMIN; /admin/** chỉ ADMIN; còn lại cần đăng nhập. Bật CSRF. Sau đăng nhập quay lại trang trước đó nhưng CHỈ đường dẫn nội bộ. Điều hướng sau đăng nhập: GUEST về trang chủ, STAFF/ADMIN về /staff/today (tạo trang tạm).
-4. Quên/đổi mật khẩu: token ngẫu nhiên, chỉ lưu băm, dùng một lần, hết hạn 30 phút. Gửi email qua EmailService tạm (ghi ra log). Trang hồ sơ cho phép đổi họ tên, SĐT và mật khẩu (nhập mật khẩu cũ).
+4. Quên/đổi mật khẩu: token ngẫu nhiên, chỉ lưu băm, dùng một lần, hết hạn 30 phút. Gửi email qua emailService tạm (ghi ra log). Trang hồ sơ cho phép đổi họ tên, SĐT và mật khẩu (nhập mật khẩu cũ).
 5. Giao diện: menu thay đổi theo vai trò (dùng thymeleaf-extras-springsecurity6). Lỗi hiện cạnh ô nhập.
 6. Ghi AuditLog khi đăng nhập sai, khóa tài khoản. (Có thể tạo AuditService đơn giản.)
 7. Viết test MockMvc: khách không vào được /staff/** và /admin/**; STAFF không vào được /admin/**; thiếu CSRF thì bị từ chối; khóa tạm sau 5 lần sai (dùng Clock cố định).
+8. Chỉ ở profile dev: tự tạo sẵn 5 tài khoản theo mục 10 của PROJECT.md (admin@staybook.local, staff1@staybook.local, staff2@staybook.local, guest1@staybook.local, guest2@staybook.local, mật khẩu Staybook@123), CHƯA tạo dữ liệu nào khác. Chạy lặp không được nhân đôi tài khoản; không chạy ở môi trường khác dev.
 
 Tiêu chí hoàn thành: test qua; chạy thử đăng ký, đăng nhập, đăng xuất, sai mật khẩu 5 lần.
 
@@ -157,10 +158,10 @@ Mục tiêu: khách đặt phòng và giữ chỗ, chống đặt trùng.
 
 Việc cần làm:
 1. BookingService.createBooking theo đúng 4 bước ở mục 5.4 trong MỘT @Transactional (khóa RoomType bằng PESSIMISTIC_WRITE, chọn phòng số nhỏ nhất còn trống, tính giá lại ở máy chủ, tạo BookingNight, tạo mã BK-yyMMdd-XXXX duy nhất, ghi BookingEvent). Form KHÔNG chứa giá hay cọc; máy chủ tự tính (BR-25).
-2. BookingStateMachine / bảng chuyển trạng thái đúng mục 6. Mọi chuyển trạng thái đi qua đây và ghi BookingEvent. Chuyển PENDING_DEPOSIT → AWAITING_CONFIRMATION cho khách chủ booking, từ chối nếu quá hạn giữ chỗ.
+2. BookingStatemachine / bảng chuyển trạng thái đúng mục 6. Mọi chuyển trạng thái đi qua đây và ghi BookingEvent. Chuyển PENDING_DEPOSIT → AWAITING_CONFIRMATION cho khách chủ booking, từ chối nếu quá hạn giữ chỗ.
 3. GET /booking/new (bước Thông tin): hiện loại phòng, ngày, số khách, thông tin liên hệ (lấy từ hồ sơ, sửa được), ghi chú, bảng giá từng đêm, tổng tiền, tiền cọc, chính sách hủy. Nếu ngày nhận cách thời điểm đặt dưới 48 giờ: cảnh báo "Đặt phòng này sẽ không được hoàn cọc nếu hủy." và bắt buộc tích ô xác nhận. Chưa đăng nhập thì chuyển tới đăng nhập rồi quay lại đúng lựa chọn.
 4. POST /booking → tạo booking. Hết phòng giữa chừng: báo "Loại phòng này vừa hết phòng trong các ngày bạn chọn. Vui lòng chọn ngày hoặc loại phòng khác." Quá BR-24: báo cần thanh toán hoặc hủy bớt đặt phòng đang chờ.
-5. GET /booking/{code}/payment: thanh toán cọc: mã đặt, số tiền cọc, ảnh VietQR (số tiền + nội dung chuyển khoản = mã đặt; nếu không tạo được ảnh thì hiện số tài khoản và nội dung bằng chữ), thông tin tài khoản từ Setting, đồng hồ đếm ngược giữ chỗ, nút "Tôi đã chuyển khoản" (POST /booking/{code}/paid-notice). Thanh tiến trình 4 bước: Chọn phòng → Thông tin → Chuyển cọc → Hoàn tất. Kiểm tra chủ sở hữu booking.
+5. GET /booking/{code}/payment: thanh toán cọc: mã đặt, số tiền cọc, ảnh VietQR (số tiền + nội dung chuyển khoản = mã đặt; nếu không tạo được ảnh thì hiện số tài khoản và nội dung bằng chữ), thông tin tài khoản từ Setting, đồng hồ đếm ngược giữ chỗ, nút "em đã chuyển khoản" (POST /booking/{code}/paid-notice). Thanh tiến trình 4 bước: Chọn phòng → Thông tin → Chuyển cọc → Hoàn tất. Kiểm tra chủ sở hữu booking.
 6. Test: unit test createBooking (giá, cọc, trạng thái, hạn giữ chỗ); BookingConcurrencyTest: hai luồng cùng đặt phòng cuối cùng của một loại → chỉ một thành công, không có hai booking chồng lấn trên cùng phòng; đặt liền kề hợp lệ; BR-24; form bị sửa giá vẫn dùng giá máy chủ.
 
 Tiêu chí hoàn thành: test qua (đặc biệt test đồng thời, chạy nhiều lần vẫn qua); thử thủ công đặt phòng từ lúc tìm đến trang chuyển cọc.
@@ -168,7 +169,7 @@ Tiêu chí hoàn thành: test qua (đặc biệt test đồng thời, chạy nhi
 Khi xong: liệt kê file, giải thích bằng lời từng bước vì sao không thể đặt trùng, nêu việc chưa làm.
 ```
 
-### Prompt 7B – Đặt phòng của tôi và hủy phòng
+### Prompt 7B – Đặt phòng của em và hủy phòng
 
 ```text
 Đọc #file:PROJECT.md (mục 5 BR-11, BR-20, mục 5.5, 5.6, mục 6, mục 7 phần Khách) và #file:.github/copilot-instructions.md.
@@ -206,7 +207,7 @@ Việc cần làm:
 5. Fragment huy hiệu trạng thái dùng chung (xem mục 9). Nút lớn, ít bước, hộp thoại xác nhận cho thao tác từ chối.
 6. Test: PaymentLedgerTest; confirm-deposit đủ/thiếu tiền; STAFF mới dùng được, GUEST bị từ chối.
 
-Tiêu chí hoàn thành: test qua; thử thủ công: khách đặt phòng, bấm "Tôi đã chuyển khoản", lễ tân xác nhận, khách thấy trạng thái Đã xác nhận.
+Tiêu chí hoàn thành: test qua; thử thủ công: khách đặt phòng, bấm "em đã chuyển khoản", lễ tân xác nhận, khách thấy trạng thái Đã xác nhận.
 
 Khi xong: liệt kê file, giải thích sổ thanh toán và vì sao không cho sửa/xóa khoản đã ghi, nêu việc chưa làm.
 ```
@@ -240,10 +241,10 @@ Khi xong: liệt kê file, giải thích máy trạng thái và công thức cò
 Mục tiêu: tự giải phóng phòng khi hết hạn giữ chỗ.
 
 Việc cần làm:
-1. Bật Spring Scheduling. BookingExpiryJob chạy mỗi phút (fixedDelay): tìm booking PENDING_DEPOSIT có holdExpiresAt < now (lấy now từ Clock); với từng booking mở giao dịch riêng, đọc lại trạng thái và chỉ chuyển sang EXPIRED nếu vẫn là PENDING_DEPOSIT; ghi BookingEvent với actor "SYSTEM". Lỗi ở một booking không làm dừng các booking còn lại.
+1. Bật Spring Scheduling. BookingExpiryJob chạy mỗi phút (fixedDelay): tìm booking PENDING_DEPOSIT có holdExpiresAt < now (lấy now từ Clock); với từng booking mở giao dịch riêng, đọc lại trạng thái và chỉ chuyển sang EXPIRED nếu vẫn là PENDING_DEPOSIT; ghi BookingEvent với actor "SYSTem". Lỗi ở một booking không làm dừng các booking còn lại.
 2. Sau khi EXPIRED, phòng phải xuất hiện lại khi tìm kiếm.
 3. Test (Clock cố định): đặt lúc 10:00 không cọc, lúc 10:31 chạy job → EXPIRED; chạy job hai lần không lỗi; khách bấm "đã chuyển khoản" trước khi job chạy thì KHÔNG bị hết hạn; khách bấm đúng lúc quá hạn thì bị từ chối; booking AWAITING_CONFIRMATION không bao giờ bị job hủy.
-4. Hiển thị cho khách trên trang "Đặt phòng của tôi" thông báo "Đặt phòng đã hết hạn giữ chỗ. Vui lòng đặt lại." với nút đặt lại.
+4. Hiển thị cho khách trên trang "Đặt phòng của em" thông báo "Đặt phòng đã hết hạn giữ chỗ. Vui lòng đặt lại." với nút đặt lại.
 
 Tiêu chí hoàn thành: test qua; thử thủ công bằng cách đặt tạm hold.minutes = 1.
 
@@ -296,17 +297,17 @@ Việc cần làm:
 Khi xong: liệt kê file, giải thích và nêu việc chưa làm.
 ```
 
-### Prompt 13 – Email thông báo
+### Prompt 13 – email thông báo
 
 ```text
-Đọc #file:PROJECT.md (mục 7 phần Tác vụ nền và Email) và #file:.github/copilot-instructions.md.
+Đọc #file:PROJECT.md (mục 7 phần Tác vụ nền và email) và #file:.github/copilot-instructions.md.
 
 Việc cần làm:
-1. EmailService dùng JavaMailSender. Cấu hình SMTP Gmail qua biến môi trường MAIL_USERNAME, MAIL_PASSWORD (mật khẩu ứng dụng). Khi chưa cấu hình thì chỉ ghi nội dung email ra log.
-2. Email (template Thymeleaf, tiếng Việt, đủ mã đặt, ngày, tổng tiền, chính sách): đã nhận đặt phòng (kèm hạn giữ chỗ), đã xác nhận cọc, đã hủy (kèm số tiền hoàn nếu có), hết hạn giữ chỗ, nhắc trước ngày nhận.
+1. emailService dùng JavaMailSender. Cấu hình SMTP Gmail qua biến môi trường MAIL_USERNAME, MAIL_PASSWORD (mật khẩu ứng dụng). Khi chưa cấu hình thì chỉ ghi nội dung email ra log.
+2. email (template Thymeleaf, tiếng Việt, đủ mã đặt, ngày, tổng tiền, chính sách): đã nhận đặt phòng (kèm hạn giữ chỗ), đã xác nhận cọc, đã hủy (kèm số tiền hoàn nếu có), hết hạn giữ chỗ, nhắc trước ngày nhận.
 3. Gửi bất đồng bộ hoặc sau khi giao dịch commit (không để lỗi email làm hỏng nghiệp vụ). Lỗi thì thử lại tối đa 3 lần cách 5 phút rồi ghi AuditLog.
 4. CheckInReminderJob chạy 09:00 mỗi ngày (cron, zone Asia/Ho_Chi_Minh): booking CONFIRMED có ngày nhận là ngày mai và reminderSentAt trống → gửi và ghi reminderSentAt. Chạy lặp không gửi trùng.
-5. Test: gửi đúng loại email ở đúng thời điểm chuyển trạng thái (dùng EmailService giả); nhắc không gửi trùng; lỗi email không làm rollback giao dịch.
+5. Test: gửi đúng loại email ở đúng thời điểm chuyển trạng thái (dùng emailService giả); nhắc không gửi trùng; lỗi email không làm rollback giao dịch.
 
 Khi xong: liệt kê file, giải thích và nêu việc chưa làm.
 ```
@@ -375,7 +376,7 @@ Sau báo cáo, SỬA các điểm quan trọng nhất (tối đa 10 điểm), li
 Việc cần làm:
 1. Dữ liệu mẫu theo mục 10, chỉ chạy ở profile dev (CommandLineRunner hoặc tương đương), chạy lặp không nhân đôi dữ liệu. Booking mẫu dùng ngày tương đối so với hôm nay và phủ đủ 8 trạng thái.
 2. README.md: giới thiệu ngắn, yêu cầu cài đặt (JDK 17, MySQL 8), cách tạo CSDL, biến môi trường, cách chạy ("mvn spring-boot:run" với profile dev), tài khoản mẫu, cách chạy test, cấu trúc thư mục.
-3. docs/DEMO.md: kịch bản demo 8 đến 10 phút gồm các bước bấm cụ thể: (a) khách tìm phòng và thấy giá cuối tuần; (b) đặt phòng, thấy đếm ngược giữ chỗ; (c) báo đã chuyển khoản; (d) lễ tân xác nhận cọc; (e) minh họa chống trùng: hai tab trình duyệt cùng đặt phòng cuối; (f) nhận phòng, thêm phụ phí, thu tiền, trả phòng, in hóa đơn; (g) hủy sớm và hủy sát giờ để thấy khác biệt hoàn cọc; (h) sơ đồ phòng; (i) báo cáo công suất và doanh thu.
+3. docs/DemO.md: kịch bản demo 8 đến 10 phút gồm các bước bấm cụ thể: (a) khách tìm phòng và thấy giá cuối tuần; (b) đặt phòng, thấy đếm ngược giữ chỗ; (c) báo đã chuyển khoản; (d) lễ tân xác nhận cọc; (e) minh họa chống trùng: hai tab trình duyệt cùng đặt phòng cuối; (f) nhận phòng, thêm phụ phí, thu tiền, trả phòng, in hóa đơn; (g) hủy sớm và hủy sát giờ để thấy khác biệt hoàn cọc; (h) sơ đồ phòng; (i) báo cáo công suất và doanh thu.
 4. Chạy toàn bộ test và đảm bảo qua. Liệt kê test nào có, test nào còn thiếu so với mục 11.
 
 Khi xong: liệt kê file và cách em chạy thử toàn bộ.

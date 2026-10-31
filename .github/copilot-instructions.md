@@ -14,7 +14,7 @@ Mọi quy tắc nghiệp vụ nằm trong `PROJECT.md` (ở thư mục gốc). L
 
 ## Kiến trúc
 
-- Java 17, Spring Boot 3.x, Maven, Thymeleaf, Spring Data JPA, Spring Security, Bean Validation, Spring Mail. CSDL: MySQL (chạy thật) và H2 (test).
+- Java 25, Spring Boot 3.x, Maven, Thymeleaf, Spring Data JPA, Spring Security, Bean Validation, Spring Mail. CSDL: MySQL (chạy thật) và H2 (test).
 - Tổ chức package theo tính năng (xem `PROJECT.md` mục 3). Luồng: Controller → Service → Repository.
 - Controller mỏng: nhận form, gọi service, trả view. Mọi quy tắc nghiệp vụ nằm trong service.
 - Dùng lớp Form/DTO riêng cho dữ liệu nhập; không bind trực tiếp từ form vào entity.
