@@ -1,0 +1,7 @@
+# Sao chép thành application-local.properties (tệp này không được commit).
+DB_URL=jdbc:mysql://localhost:3306/staybook?createDatabaseIfNotExist=true&serverTimezone=Asia/Ho_Chi_Minh
+DB_USERNAME=your_username
+DB_PASSWORD=your_password
+UPLOAD_DIR=uploads
+MAIL_USERNAME=
+MAIL_PASSWORD=

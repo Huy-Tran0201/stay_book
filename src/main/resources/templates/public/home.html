@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/main :: head('Trang chủ')}"></head>
+<body>
+<nav th:replace="~{layout/main :: header}"></nav>
+<div th:replace="~{layout/main :: flash}"></div>
+<main class="container py-5">
+    <section class="bg-white rounded-3 shadow-sm p-4 p-md-5 text-center">
+        <h1 class="display-5 fw-bold text-primary">Chào mừng đến với StayBook</h1>
+        <p class="lead text-secondary">Khung ứng dụng đặt phòng đang được hoàn thiện.</p>
+        <a class="btn btn-primary" th:href="@{/login}">Đăng nhập</a>
+    </section>
+</main>
+<footer th:replace="~{layout/main :: footer}"></footer>
+</body>
+</html>

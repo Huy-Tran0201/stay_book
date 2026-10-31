@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${title} + ' - StayBook'">StayBook</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}">
+</head>
+<body class="bg-light">
+<nav th:fragment="header" class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        <a class="navbar-brand fw-bold" th:href="@{/}">StayBook</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainMenu"
+                aria-label="Mở menu"><span class="navbar-toggler-icon"></span></button>
+        <div id="mainMenu" class="collapse navbar-collapse">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" th:href="@{/}">Trang chủ</a></li>
+                <li class="nav-item" sec:authorize="hasAnyRole('STAFF','ADMIN')">
+                    <a class="nav-link" th:href="@{/staff/today}">Lễ tân</a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link" th:href="@{/admin/reports}">Quản trị</a>
+                </li>
+            </ul>
+            <div class="d-flex align-items-center gap-2">
+                <a class="btn btn-outline-light btn-sm" sec:authorize="!isAuthenticated()" th:href="@{/login}">Đăng nhập</a>
+                <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post">
+                    <button class="btn btn-light btn-sm" type="submit">Đăng xuất</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</nav>
+<div th:fragment="flash" class="container pt-3">
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+</div>
+<footer th:fragment="footer" class="border-top mt-5 py-4 text-center text-muted">
+    <div class="container"><small>StayBook - Đặt phòng đơn giản, thuận tiện</small></div>
+    <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
+</footer>
+</body>
+</html>
