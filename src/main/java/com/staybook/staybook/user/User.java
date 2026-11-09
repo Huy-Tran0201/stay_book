@@ -23,6 +23,11 @@ public class User {
         this.fullName = fullName; this.email = email; this.phone = phone; this.passwordHash = passwordHash;
         this.role = role; this.status = status; this.createdAt = createdAt;
     }
+    public void resetLoginFailures() {
+        failedLoginCount = 0;
+        lockedUntil = null;
+        if (status == UserStatus.TEMP_LOCKED) status = UserStatus.ACTIVE;
+    }
     public Long getId() { return id; }
     public String getFullName() { return fullName; } public void setFullName(String v) { fullName = v; }
     public String getEmail() { return email; } public void setEmail(String v) { email = v; }

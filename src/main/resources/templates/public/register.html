@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/main :: head('Đăng ký')}"></head>
+<body><nav th:replace="~{layout/main :: header}"></nav>
+<main class="container py-5"><div class="card mx-auto" style="max-width:520px"><div class="card-body">
+<h1 class="h3">Đăng ký tài khoản</h1>
+<div class="alert alert-danger" th:if="${formError}" th:text="${formError}"></div>
+<form th:action="@{/register}" th:object="${form}" method="post">
+<label class="form-label">Họ tên</label><input class="form-control mb-2" th:field="*{fullName}">
+<div class="text-danger" th:errors="*{fullName}"></div>
+<label class="form-label">Email</label><input class="form-control mb-2" type="email" th:field="*{email}">
+<div class="text-danger" th:errors="*{email}"></div>
+<label class="form-label">Số điện thoại</label><input class="form-control mb-2" th:field="*{phone}">
+<div class="text-danger" th:errors="*{phone}"></div>
+<label class="form-label">Mật khẩu</label><input class="form-control mb-2" type="password" th:field="*{password}">
+<div class="text-danger" th:errors="*{password}"></div>
+<label class="form-label">Nhập lại mật khẩu</label><input class="form-control mb-3" type="password" th:field="*{confirmPassword}">
+<button class="btn btn-primary w-100">Đăng ký</button></form>
+</div></div></main><footer th:replace="~{layout/main :: footer}"></footer></body></html>

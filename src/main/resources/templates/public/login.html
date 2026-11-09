@@ -7,7 +7,10 @@
     <div class="card shadow-sm mx-auto" style="max-width: 420px">
         <div class="card-body p-4">
             <h1 class="h3 mb-4">Đăng nhập</h1>
-            <div th:if="${param.error}" class="alert alert-danger">Email hoặc mật khẩu không đúng.</div>
+            <div th:if="${param.registered}" class="alert alert-success">Đăng ký thành công. Vui lòng đăng nhập.</div>
+            <div th:if="${param.reset}" class="alert alert-success">Đổi mật khẩu thành công.</div>
+            <div th:if="${param.error}" class="alert alert-danger">Email hoặc mật khẩu không chính xác.</div>
+            <div th:if="${param.locked}" class="alert alert-danger">Tài khoản đã bị khóa. Vui lòng liên hệ cơ sở.</div>
             <div th:if="${param.logout}" class="alert alert-success">Bạn đã đăng xuất.</div>
             <form th:action="@{/login}" method="post">
                 <div class="mb-3"><label class="form-label" for="username">Email</label>
@@ -16,6 +19,7 @@
                     <input class="form-control" id="password" name="password" type="password" required></div>
                 <button class="btn btn-primary w-100" type="submit">Đăng nhập</button>
             </form>
+            <div class="mt-3 d-flex justify-content-between"><a th:href="@{/register}">Đăng ký</a><a th:href="@{/forgot-password}">Quên mật khẩu?</a></div>
         </div>
     </div>
 </main>

@@ -15,4 +15,8 @@ public class AuditLog {
     @Column(length = 2000) private String detail;
     @Column(name = "log_at", nullable = false) private LocalDateTime at;
     protected AuditLog() {}
+    public AuditLog(User user, String action, String targetType, Long targetId, String detail, LocalDateTime at) {
+        this.user = user; this.action = action; this.targetType = targetType;
+        this.targetId = targetId; this.detail = detail; this.at = at;
+    }
 }

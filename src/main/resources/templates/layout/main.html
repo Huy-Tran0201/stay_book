@@ -25,6 +25,7 @@
             </ul>
             <div class="d-flex align-items-center gap-2">
                 <a class="btn btn-outline-light btn-sm" sec:authorize="!isAuthenticated()" th:href="@{/login}">Đăng nhập</a>
+                <a class="btn btn-outline-light btn-sm" sec:authorize="isAuthenticated()" th:href="@{/profile}">Hồ sơ</a>
                 <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post">
                     <button class="btn btn-light btn-sm" type="submit">Đăng xuất</button>
                 </form>
