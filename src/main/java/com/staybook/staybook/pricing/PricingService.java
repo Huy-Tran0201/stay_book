@@ -25,12 +25,22 @@ public class PricingService {
     }
 
     public PricingResult calculate(RoomType roomType, LocalDate checkIn, LocalDate checkOut) {
+        List<NightPrice> nights = calculateNights(roomType, checkIn, checkOut);
+        long total = nights.stream().mapToLong(NightPrice::nightPrice).sum();
+        return new PricingResult(nights, total, roundDeposit(total, readDepositPercent()));
+    }
+
+    public long calculateRoomAmount(RoomType roomType, LocalDate checkIn, LocalDate checkOut) {
+        return calculateNights(roomType, checkIn, checkOut).stream()
+            .mapToLong(NightPrice::nightPrice).sum();
+    }
+
+    private List<NightPrice> calculateNights(RoomType roomType, LocalDate checkIn, LocalDate checkOut) {
         if (roomType == null || checkIn == null || checkOut == null || !checkIn.isBefore(checkOut)) {
             throw new IllegalArgumentException("Khoảng ngày ở không hợp lệ.");
         }
 
         List<NightPrice> nights = new ArrayList<>();
-        long total = 0;
         for (LocalDate date = checkIn; date.isBefore(checkOut); date = date.plusDays(1)) {
             long basePrice = findBasePrice(roomType, date);
             long surcharge = isWeekendNight(date)
@@ -38,9 +48,8 @@ public class PricingService {
                 : 0;
             long nightPrice = Math.addExact(basePrice, surcharge);
             nights.add(new NightPrice(date, basePrice, surcharge, nightPrice));
-            total = Math.addExact(total, nightPrice);
         }
-        return new PricingResult(nights, total, roundDeposit(total, readDepositPercent()));
+        return nights;
     }
 
     public PricingReference referencePrices(RoomType roomType) {

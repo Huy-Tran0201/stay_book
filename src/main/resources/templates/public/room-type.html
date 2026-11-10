@@ -6,6 +6,22 @@
 <main class="container py-4">
     <h1 th:text="${roomType.name}">Loại phòng</h1>
     <p class="text-secondary" th:text="${roomType.description}"></p>
+    <div class="row g-2 mb-4" th:if="${!#lists.isEmpty(images)}">
+        <div class="col-6 col-md-3" th:each="image : ${images}">
+            <img class="img-fluid rounded" th:src="@{'/uploads/' + image.fileName}"
+                 th:alt="${roomType.name}">
+        </div>
+    </div>
+    <dl class="row">
+        <dt class="col-5">Diện tích</dt><dd class="col-7" th:text="${roomType.areaM2} + ' m²'"></dd>
+        <dt class="col-5">Giường</dt><dd class="col-7" th:text="${roomType.bedType}"></dd>
+        <dt class="col-5">Sức chứa</dt><dd class="col-7" th:text="${roomType.maxGuests} + ' khách'"></dd>
+    </dl>
+    <h2 class="h5 mt-4">Tiện nghi</h2>
+    <ul class="list-inline">
+        <li class="list-inline-item badge text-bg-light border" th:each="amenity : ${roomType.amenities}"
+            th:text="${amenity.name}"></li>
+    </ul>
     <section class="card mt-4">
         <div class="card-body">
             <h2 class="h5" th:text="#{room-type.pricing.title}">Bảng giá tham khảo</h2>
@@ -17,6 +33,26 @@
             </dl>
         </div>
     </section>
+    <p class="mt-3 text-secondary">
+        Nhận phòng từ <strong th:text="${settings['checkin.time'] ?: '14:00'}"></strong>,
+        trả phòng trước <strong th:text="${settings['checkout.time'] ?: '12:00'}"></strong>.
+        Phụ thu cuối tuần đã được tính trong giá.
+    </p>
+    <p class="small text-secondary" th:if="${settings['deposit.percent']}">
+        Chính sách cọc: <span th:text="${settings['deposit.percent']}"></span>% tổng tiền phòng.
+        <span th:if="${settings['refund.hours']}"
+              th:text="'Hoàn cọc trước ' + settings['refund.hours'] + ' giờ.'"></span>
+    </p>
+    <p class="small text-secondary" th:if="${settings['cancel.policy']}"
+       th:text="${settings['cancel.policy']}"></p>
+    <a class="btn btn-outline-secondary me-2"
+       th:href="@{/rooms(checkIn=${checkIn},checkOut=${checkOut},guests=${guests},minPrice=${minPrice},maxPrice=${maxPrice},minCapacity=${minCapacity},amenity=${selectedAmenities},sort=${sort})}">
+        Quay lại kết quả
+    </a>
+    <a class="btn btn-primary"
+       th:href="@{/booking/new(checkIn=${checkIn},checkOut=${checkOut},guests=${guests},roomTypeId=${roomType.id})}">
+        Đặt phòng
+    </a>
 </main>
 <footer th:replace="~{layout/main :: footer}"></footer>
 </body>

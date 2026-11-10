@@ -5,12 +5,41 @@
 <nav th:replace="~{layout/main :: header}"></nav>
 <div th:replace="~{layout/main :: flash}"></div>
 <main class="container py-5">
-    <section class="bg-white rounded-3 shadow-sm p-4 p-md-5 text-center">
-        <h1 class="display-5 fw-bold text-primary">Chào mừng đến với StayBook</h1>
-        <p class="lead text-secondary">Khung ứng dụng đặt phòng đang được hoàn thiện.</p>
-        <a class="btn btn-primary" th:href="@{/login}">Đăng nhập</a>
+    <section class="bg-white rounded-3 shadow-sm p-4 p-md-5">
+        <h1 class="display-5 fw-bold text-primary">Tìm phòng phù hợp</h1>
+        <p class="lead text-secondary">Chọn ngày ở và số khách để xem phòng còn trống.</p>
+        <form class="row g-3 mt-2" th:action="@{/rooms}" method="get">
+            <div class="col-12 col-md-4">
+                <label class="form-label" for="checkIn">Ngày nhận</label>
+                <input class="form-control" id="checkIn" name="checkIn" type="date"
+                       th:value="${checkIn}" th:min="${checkIn}" required>
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label" for="checkOut">Ngày trả</label>
+                <input class="form-control" id="checkOut" name="checkOut" type="date"
+                       th:value="${checkOut}" th:min="${checkOut}" required>
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label" for="guests">Số khách</label>
+                <input class="form-control" id="guests" name="guests" type="number"
+                       min="1" th:value="${guests}" required>
+            </div>
+            <div class="col-12 col-md-2 d-flex align-items-end">
+                <button class="btn btn-primary w-100" type="submit">Tìm phòng</button>
+            </div>
+        </form>
     </section>
 </main>
 <footer th:replace="~{layout/main :: footer}"></footer>
+<script>
+    const checkIn = document.getElementById('checkIn');
+    const checkOut = document.getElementById('checkOut');
+    checkIn.addEventListener('change', () => {
+        const nextDay = new Date(checkIn.value);
+        nextDay.setDate(nextDay.getDate() + 1);
+        checkOut.min = nextDay.toISOString().slice(0, 10);
+        if (checkOut.value < checkOut.min) checkOut.value = checkOut.min;
+    });
+</script>
 </body>
 </html>
