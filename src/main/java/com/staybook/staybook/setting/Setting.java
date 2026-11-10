@@ -10,4 +10,6 @@ public class Setting {
     @Column(nullable = false, length = 500) private String value;
     protected Setting() {}
     public Setting(String key, String value) { this.key = key; this.value = value; }
+    public String getKey() { return key; }
+    public String getValue() { return value; }
 }

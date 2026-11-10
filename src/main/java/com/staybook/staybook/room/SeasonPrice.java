@@ -13,4 +13,17 @@ public class SeasonPrice {
     @Column(name = "to_date", nullable = false) private LocalDate toDate;
     @Column(nullable = false) private long basePrice;
     protected SeasonPrice() {}
+    public SeasonPrice(RoomType roomType, String name, LocalDate fromDate, LocalDate toDate, long basePrice) {
+        this.roomType = roomType;
+        this.name = name;
+        this.fromDate = fromDate;
+        this.toDate = toDate;
+        this.basePrice = basePrice;
+    }
+
+    public RoomType getRoomType() { return roomType; }
+    public String getName() { return name; }
+    public LocalDate getFromDate() { return fromDate; }
+    public LocalDate getToDate() { return toDate; }
+    public long getBasePrice() { return basePrice; }
 }

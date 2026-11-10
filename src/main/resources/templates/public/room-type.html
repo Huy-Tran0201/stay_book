@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/main :: head(${roomType.name})}"></head>
+<body>
+<nav th:replace="~{layout/main :: header}"></nav>
+<main class="container py-4">
+    <h1 th:text="${roomType.name}">Loại phòng</h1>
+    <p class="text-secondary" th:text="${roomType.description}"></p>
+    <section class="card mt-4">
+        <div class="card-body">
+            <h2 class="h5" th:text="#{room-type.pricing.title}">Bảng giá tham khảo</h2>
+            <dl class="row mb-0">
+                <dt class="col-sm-7" th:text="#{room-type.pricing.weekday}">Giá ngày thường</dt>
+                <dd class="col-sm-5" th:text="${#numbers.formatInteger(pricing.weekdayPrice(), 3, 'POINT')} + ' ₫'"></dd>
+                <dt class="col-sm-7" th:text="#{room-type.pricing.weekend}">Giá đêm cuối tuần (Thứ 6, Thứ 7)</dt>
+                <dd class="col-sm-5" th:text="${#numbers.formatInteger(pricing.weekendPrice(), 3, 'POINT')} + ' ₫'"></dd>
+            </dl>
+        </div>
+    </section>
+</main>
+<footer th:replace="~{layout/main :: footer}"></footer>
+</body>
+</html>
