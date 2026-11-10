@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/main :: head('Thông tin loại phòng')}"></head>
+<body><nav th:replace="~{layout/main :: header}"></nav><main class="container py-4">
+<h1 th:text="${id == null ? 'Thêm loại phòng' : 'Sửa loại phòng'}"></h1>
+<form th:action="@{/admin/room-types/save}" th:object="${form}" method="post" enctype="multipart/form-data" class="row g-3">
+ <input type="hidden" name="id" th:value="${id}"/><div th:if="${#fields.hasGlobalErrors()}" class="alert alert-danger" th:each="e : ${#fields.globalErrors()}" th:text="${e}"></div>
+ <div class="col-md-6"><label class="form-label">Tên</label><input class="form-control" th:field="*{name}"/><div class="text-danger" th:errors="*{name}"></div></div>
+ <div class="col-md-6"><label class="form-label">Loại giường</label><input class="form-control" th:field="*{bedType}"/><div class="text-danger" th:errors="*{bedType}"></div></div>
+ <div class="col-12"><label class="form-label">Mô tả</label><textarea class="form-control" th:field="*{description}"></textarea><div class="text-danger" th:errors="*{description}"></div></div>
+ <div class="col-md-3"><label class="form-label">Sức chứa</label><input type="number" class="form-control" th:field="*{maxGuests}"/><div class="text-danger" th:errors="*{maxGuests}"></div></div>
+ <div class="col-md-3"><label class="form-label">Diện tích (m²)</label><input type="number" class="form-control" th:field="*{areaM2}"/><div class="text-danger" th:errors="*{areaM2}"></div></div>
+ <div class="col-md-3"><label class="form-label">Giá cơ bản (₫)</label><input type="number" class="form-control" th:field="*{basePrice}"/><div class="text-danger" th:errors="*{basePrice}"></div></div>
+ <div class="col-md-3"><label class="form-label">Phụ thu cuối tuần (%)</label><input type="number" class="form-control" th:field="*{weekendSurchargePercent}"/><div class="text-danger" th:errors="*{weekendSurchargePercent}"></div></div>
+ <div class="col-12"><label class="form-label">Tiện nghi</label><div class="d-flex flex-wrap gap-3"><label th:each="a : ${amenities}"><input type="checkbox" th:field="*{amenityIds}" th:value="${a.id}"/> <span th:text="${a.name}"></span></label></div></div>
+ <div class="col-12"><label class="form-label">Ảnh (JPG/PNG, tối đa 2 MB/ảnh, tối đa 5 ảnh)</label><input class="form-control" type="file" name="images" multiple accept=".jpg,.jpeg,.png,image/jpeg,image/png"/></div>
+ <div class="col-12"><button class="btn btn-primary">Lưu</button> <a class="btn btn-secondary" th:href="@{/admin/room-types}">Hủy</a></div>
+</form></main><footer th:replace="~{layout/main :: footer}"></footer></body></html>

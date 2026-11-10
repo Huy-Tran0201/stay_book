@@ -6,8 +6,16 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface RoomRepository extends JpaRepository<Room, Long> {
+    @Override
+    @EntityGraph(attributePaths = "roomType")
+    Optional<Room> findById(Long id);
+
+    boolean existsByRoomNumberIgnoreCase(String roomNumber);
+    @EntityGraph(attributePaths = "roomType")
+    List<Room> findAllByOrderByRoomTypeNameAscRoomNumberAsc();
     @Query("""
         select r from Room r
         where r.roomType.id = :roomTypeId and r.status = com.staybook.staybook.room.RoomStatus.ACTIVE

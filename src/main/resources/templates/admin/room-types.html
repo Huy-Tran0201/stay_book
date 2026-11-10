@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/main :: head('Quản lý loại phòng')}"></head>
+<body><nav th:replace="~{layout/main :: header}"></nav>
+<main class="container py-4">
+ <div th:replace="~{layout/main :: flash}"></div>
+ <div class="d-flex justify-content-between align-items-center mb-3"><h1>Loại phòng</h1><a class="btn btn-primary" th:href="@{/admin/room-types/new}">Thêm loại phòng</a></div>
+ <div class="table-responsive"><table class="table table-bordered align-middle"><thead><tr><th>Tên</th><th>Sức chứa</th><th>Giá cơ bản</th><th>Trạng thái</th><th></th></tr></thead>
+ <tbody><tr th:each="type : ${roomTypes}"><td th:text="${type.name}"></td><td th:text="${type.maxGuests}"></td><td th:text="${type.basePrice}"></td><td th:text="${type.status}"></td>
+ <td><a class="btn btn-sm btn-outline-primary" th:href="@{/admin/room-types/{id}/edit(id=${type.id})}">Sửa</a>
+ <form class="d-inline" th:if="${type.status.name() == 'ACTIVE'}" th:action="@{/admin/room-types/{id}/deactivate(id=${type.id})}" method="post"><button class="btn btn-sm btn-outline-danger">Ngừng hoạt động</button></form></td></tr>
+ <tr th:if="${#lists.isEmpty(roomTypes)}"><td colspan="5">Chưa có loại phòng. Hãy thêm loại phòng đầu tiên.</td></tr></tbody></table></div>
+</main><footer th:replace="~{layout/main :: footer}"></footer></body></html>

@@ -7,6 +7,12 @@ import java.util.Collection;
 import java.util.List;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
+    boolean existsByRoomTypeId(Long roomTypeId);
+    boolean existsByRoomId(Long roomId);
+    @Query("select b from Booking b where b.room.id = :roomId and b.status in :statuses and b.checkOutDate > :fromDate order by b.checkInDate")
+    List<Booking> findActiveBookingsFromDate(@Param("roomId") Long roomId,
+                                             @Param("fromDate") LocalDate fromDate,
+                                             @Param("statuses") Collection<BookingStatus> statuses);
     @Query("""
         select b from Booking b
         where b.room.id = :roomId

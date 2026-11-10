@@ -9,4 +9,6 @@ public class Amenity {
     @Column(nullable = false, length = 80) private String name;
     protected Amenity() {}
     public Amenity(String name) { this.name = name; }
+    public Long getId() { return id; }
+    public String getName() { return name; }
 }

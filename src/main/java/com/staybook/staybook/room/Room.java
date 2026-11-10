@@ -16,4 +16,9 @@ public class Room {
     }
     public Long getId() { return id; } public String getRoomNumber() { return roomNumber; }
     public RoomType getRoomType() { return roomType; } public RoomStatus getStatus() { return status; }
+    public int getFloor() { return floor; }
+    public void update(String roomNumber, int floor, RoomType roomType) {
+        this.roomNumber = roomNumber; this.floor = floor; this.roomType = roomType;
+    }
+    public void changeStatus(RoomStatus status) { this.status = status; }
 }

@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/main :: head('Quản lý phòng')}"></head>
+<body><nav th:replace="~{layout/main :: header}"></nav><main class="container py-4">
+<div th:replace="~{layout/main :: flash}"></div><div class="d-flex justify-content-between align-items-center mb-3"><h1>Phòng</h1><a class="btn btn-primary" th:href="@{/admin/rooms/new}">Thêm phòng</a></div>
+<table class="table table-bordered"><thead><tr><th>Loại phòng</th><th>Số phòng</th><th>Tầng</th><th>Trạng thái</th><th></th></tr></thead><tbody>
+<tr th:each="room : ${rooms}"><td th:text="${room.roomType.name}"></td><td th:text="${room.roomNumber}"></td><td th:text="${room.floor}"></td><td th:text="${room.status}"></td><td><a class="btn btn-sm btn-outline-primary" th:href="@{/admin/rooms/{id}/edit(id=${room.id})}">Sửa</a></td></tr>
+<tr th:if="${#lists.isEmpty(rooms)}"><td colspan="5">Chưa có phòng. Hãy thêm phòng theo từng loại phòng.</td></tr></tbody></table>
+</main><footer th:replace="~{layout/main :: footer}"></footer></body></html>

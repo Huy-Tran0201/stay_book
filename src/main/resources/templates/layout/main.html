@@ -20,7 +20,10 @@
                     <a class="nav-link" th:href="@{/staff/today}">Lễ tân</a>
                 </li>
                 <li class="nav-item" sec:authorize="hasRole('ADMIN')">
-                    <a class="nav-link" th:href="@{/admin/reports}">Quản trị</a>
+                    <a class="nav-link" th:href="@{/admin/room-types}">Loại phòng</a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link" th:href="@{/admin/rooms}">Phòng</a>
                 </li>
             </ul>
             <div class="d-flex align-items-center gap-2">

@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/main :: head('Thông tin phòng')}"></head>
+<body><nav th:replace="~{layout/main :: header}"></nav><main class="container py-4">
+<h1 th:text="${id == null ? 'Thêm phòng' : 'Sửa phòng'}"></h1><form th:action="@{/admin/rooms/save}" th:object="${form}" method="post" class="row g-3">
+<input type="hidden" name="id" th:value="${id}"/><div th:if="${#fields.hasGlobalErrors()}" class="alert alert-danger"><div th:each="e : ${#fields.globalErrors()}" th:text="${e}"></div><div th:if="${affectedBookings}">Booking bị ảnh hưởng: <span th:each="b : ${affectedBookings}" th:text="${b.code} + ' '"></span></div></div>
+<div class="col-md-4"><label class="form-label">Số phòng</label><input class="form-control" th:field="*{roomNumber}"/><div class="text-danger" th:errors="*{roomNumber}"></div></div>
+<div class="col-md-4"><label class="form-label">Tầng</label><input type="number" class="form-control" th:field="*{floor}"/><div class="text-danger" th:errors="*{floor}"></div></div>
+<div class="col-md-4"><label class="form-label">Loại phòng</label><select class="form-select" th:field="*{roomTypeId}"><option value="">-- Chọn --</option><option th:each="t : ${roomTypes}" th:value="${t.id}" th:text="${t.name}"></option></select><div class="text-danger" th:errors="*{roomTypeId}"></div></div>
+<div class="col-md-4"><label class="form-label">Trạng thái</label><select class="form-select" th:field="*{status}"><option th:each="s : ${statuses}" th:value="${s}" th:text="${s}"></option></select></div>
+<div class="col-12"><button class="btn btn-primary">Lưu</button> <a class="btn btn-secondary" th:href="@{/admin/rooms}">Hủy</a></div></form>
+</main><footer th:replace="~{layout/main :: footer}"></footer></body></html>

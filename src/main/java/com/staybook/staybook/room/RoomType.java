@@ -26,6 +26,18 @@ public class RoomType {
         this.name = name; this.maxGuests = maxGuests; this.basePrice = basePrice; this.status = status;
     }
     public Long getId() { return id; } public String getName() { return name; }
+    public String getDescription() { return description; }
     public int getMaxGuests() { return maxGuests; } public long getBasePrice() { return basePrice; }
+    public int getAreaM2() { return areaM2; } public String getBedType() { return bedType; }
+    public int getWeekendSurchargePercent() { return weekendSurchargePercent; }
     public RoomTypeStatus getStatus() { return status; }
+    public Set<Amenity> getAmenities() { return amenities; }
+    public void update(String name, String description, int maxGuests, int areaM2, String bedType,
+                       long basePrice, int weekendSurchargePercent, Set<Amenity> amenities) {
+        this.name = name; this.description = description; this.maxGuests = maxGuests;
+        this.areaM2 = areaM2; this.bedType = bedType; this.basePrice = basePrice;
+        this.weekendSurchargePercent = weekendSurchargePercent;
+        this.amenities.clear(); this.amenities.addAll(amenities);
+    }
+    public void changeStatus(RoomTypeStatus status) { this.status = status; }
 }
