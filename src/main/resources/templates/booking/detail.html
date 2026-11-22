@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Chi tiết đặt phòng</title></head>
+<body><main class="container">
+  <h1>Chi tiết đặt phòng</h1>
+  <p th:if="${message}" th:text="${message}" class="alert alert-danger"></p>
+  <p>Mã đặt phòng: <strong th:text="${booking.code}"></strong></p>
+  <p>Trạng thái:
+    <strong th:switch="${booking.status.name()}">
+      <span th:case="'PENDING_DEPOSIT'">Chờ cọc</span>
+      <span th:case="'AWAITING_CONFIRMATION'">Chờ xác nhận cọc</span>
+      <span th:case="'CONFIRMED'">Đã xác nhận</span>
+      <span th:case="'CHECKED_IN'">Đang ở</span>
+      <span th:case="'CHECKED_OUT'">Đã trả phòng</span>
+      <span th:case="'CANCELLED'">Đã hủy</span>
+      <span th:case="'EXPIRED'">Hết hạn</span>
+      <span th:case="'NO_SHOW'">Không đến</span>
+    </strong>
+  </p>
+  <p th:text="${booking.checkInDate + ' - ' + booking.checkOutDate}"></p>
+  <p>Tổng tiền: <strong th:text="${booking.totalRoomAmount + ' ₫'}"></strong></p>
+  <p>Tiền cọc: <strong th:text="${booking.depositAmount + ' ₫'}"></strong></p>
+  <p th:if="${booking.status.name() == 'CONFIRMED'}">Phòng: <strong th:text="${booking.room.roomNumber}"></strong></p>
+  <p th:if="${param.cancelled}">Đã hủy đặt phòng. Tiền được hoàn theo chính sách.</p>
+  <form th:if="${booking.status.name() == 'PENDING_DEPOSIT' or booking.status.name() == 'AWAITING_CONFIRMATION' or booking.status.name() == 'CONFIRMED'}"
+        th:action="@{'/my-bookings/' + booking.code + '/cancel'}" method="post"
+        onsubmit="return confirm('Bạn chắc chắn muốn hủy đặt phòng?')">
+    <input name="reason" value="Khách yêu cầu hủy">
+    <button type="submit">Hủy đặt phòng</button>
+  </form>
+</main></body></html>

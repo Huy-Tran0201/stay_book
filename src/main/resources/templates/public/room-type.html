@@ -41,7 +41,7 @@
     <p class="small text-secondary" th:if="${settings['deposit.percent']}">
         Chính sách cọc: <span th:text="${settings['deposit.percent']}"></span>% tổng tiền phòng.
         <span th:if="${settings['refund.hours']}"
-              th:text="'Hoàn cọc trước ' + settings['refund.hours'] + ' giờ.'"></span>
+              th:text="${refundPolicy}"></span>
     </p>
     <p class="small text-secondary" th:if="${settings['cancel.policy']}"
        th:text="${settings['cancel.policy']}"></p>

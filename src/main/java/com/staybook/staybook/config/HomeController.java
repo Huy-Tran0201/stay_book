@@ -114,9 +114,12 @@ public class HomeController {
         model.addAttribute("guests", guests == null ? 1 : guests);
         addSearchModel(model, checkIn == null ? today : checkIn, checkOut == null ? today.plusDays(1) : checkOut,
             guests == null ? 1 : guests, minPrice, maxPrice, minCapacity, amenityIds, sort);
-        model.addAttribute("settings", settingRepository.findAll().stream()
+        var settings = settingRepository.findAll().stream()
             .collect(Collectors.toMap(setting -> setting.getKey(), setting -> setting.getValue(),
-                (first, ignored) -> first)));
+                (first, ignored) -> first));
+        model.addAttribute("settings", settings);
+        model.addAttribute("refundPolicy", settings.containsKey("refund.hours")
+            ? "Hoàn cọc trước " + settings.get("refund.hours") + " giờ." : null);
         model.addAttribute("images", imageRepository.findByRoomTypeIdOrderBySortOrder(id));
         return "public/room-type";
     }

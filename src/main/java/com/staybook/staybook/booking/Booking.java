@@ -50,7 +50,26 @@ public class Booking {
         this.source = source; this.createdAt = createdAt;
     }
     public Long getId() { return id; } public String getCode() { return code; } public Room getRoom() { return room; }
+    public User getUser() { return user; } public String getGuestName() { return guestName; }
+    public String getGuestPhone() { return guestPhone; } public String getGuestEmail() { return guestEmail; }
+    public RoomType getRoomType() { return roomType; } public int getGuestCount() { return guestCount; }
+    public long getTotalRoomAmount() { return totalRoomAmount; } public long getDepositAmount() { return depositAmount; }
+    public LocalDateTime getHoldExpiresAt() { return holdExpiresAt; } public String getNote() { return note; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public long getRefundEligibleAmount() { return refundEligibleAmount; }
+    public boolean isRefundCheckNeeded() { return refundCheckNeeded; }
+    public CancelCause getCancelCause() { return cancelCause; }
+    public String getCancelReason() { return cancelReason; }
+    public LocalDateTime getCancelledAt() { return cancelledAt; }
     public LocalDate getCheckInDate() { return checkInDate; } public LocalDate getCheckOutDate() { return checkOutDate; }
     public BookingStatus getStatus() { return status; } public void setUser(User v) { user = v; }
     public void setGuestCount(int v) { guestCount = v; } public void setNote(String v) { note = v; }
+    public void setGuestName(String v) { guestName = v; } public void setGuestPhone(String v) { guestPhone = v; }
+    public void setGuestEmail(String v) { guestEmail = v; }
+    public void setHoldExpiresAt(LocalDateTime v) { holdExpiresAt = v; }
+    public void changeStatus(BookingStatus v) { status = v; }
+    public void cancel(CancelCause cause, String reason, LocalDateTime at, long refund, boolean checkNeeded) {
+        cancelCause = cause; cancelReason = reason; cancelledAt = at;
+        refundEligibleAmount = refund; refundCheckNeeded = checkNeeded; status = BookingStatus.CANCELLED;
+    }
 }

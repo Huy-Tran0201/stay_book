@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Thông tin đặt phòng</title></head>
+<body>
+<main class="container">
+  <h1>Thông tin đặt phòng</h1>
+  <p th:if="${message}" th:text="${message}" class="alert alert-danger"></p>
+  <p th:if="${message}">
+    <a href="/my-bookings">Quản lý các đặt phòng đang chờ để thanh toán hoặc hủy</a>
+  </p>
+  <h2 th:text="${roomType.name}"></h2>
+  <p><span th:text="${form.checkInDate}"></span> - <span th:text="${form.checkOutDate}"></span>,
+     <span th:text="${form.guestCount}"></span> khách</p>
+  <div th:if="${nearCheckIn}" class="alert alert-warning">Đặt phòng này sẽ không được hoàn cọc nếu hủy.</div>
+  <form id="booking-form" th:action="@{/booking}" th:object="${form}" method="post">
+    <input type="hidden" th:field="*{roomTypeId}"><input type="hidden" th:field="*{checkInDate}">
+    <input type="hidden" th:field="*{checkOutDate}"><input type="hidden" th:field="*{guestCount}">
+    <label>Họ tên <input th:field="*{guestName}" required></label>
+    <label>Số điện thoại <input th:field="*{guestPhone}" required></label>
+    <label>Email <input th:field="*{guestEmail}" type="email"></label>
+    <label>Ghi chú <textarea th:field="*{note}"></textarea></label>
+    <label th:if="${nearCheckIn}"><input type="checkbox" th:field="*{nearCheckInConfirmed}" required>
+      Tôi đã hiểu chính sách không hoàn cọc</label>
+    <div th:if="${pricing != null}">
+      <h3>Bảng giá từng đêm</h3>
+      <ul><li th:each="night : ${pricing.nights}" th:text="${night.date + ' - ' + night.nightPrice + ' ₫'}"></li></ul>
+      <p>Tổng tiền: <strong th:text="${pricing.totalAmount + ' ₫'}"></strong></p>
+      <p>Tiền cọc: <strong th:text="${pricing.depositAmount + ' ₫'}"></strong></p>
+      <p>Chính sách hủy: hoàn cọc nếu hủy trước 48 giờ so với 14:00 ngày nhận.</p>
+    </div>
+    <button id="booking-submit" type="submit">Đặt phòng</button>
+  </form>
+</main>
+<script>
+  const bookingForm = document.getElementById('booking-form');
+  const bookingSubmit = document.getElementById('booking-submit');
+  bookingForm?.addEventListener('submit', () => {
+    bookingSubmit.disabled = true;
+    bookingSubmit.textContent = 'Đang xử lý...';
+  });
+</script>
+</body>
+</html>

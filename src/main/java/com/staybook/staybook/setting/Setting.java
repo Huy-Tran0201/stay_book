@@ -7,9 +7,12 @@ import jakarta.persistence.*;
 public class Setting {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
     @Column(name = "setting_key", nullable = false, length = 100) private String key;
-    @Column(nullable = false, length = 500) private String value;
+    @Column(name = "value", nullable = false, length = 500) private String value;
+    @Column(name = "setting_value", nullable = false, length = 500) private String legacyCompatibleValue;
     protected Setting() {}
-    public Setting(String key, String value) { this.key = key; this.value = value; }
+    public Setting(String key, String value) {
+        this.key = key; this.value = value; this.legacyCompatibleValue = value;
+    }
     public String getKey() { return key; }
     public String getValue() { return value; }
 }

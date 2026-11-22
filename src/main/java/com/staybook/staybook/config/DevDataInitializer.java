@@ -6,6 +6,8 @@ import com.staybook.staybook.user.UserRepository;
 import com.staybook.staybook.user.UserStatus;
 import com.staybook.staybook.room.Amenity;
 import com.staybook.staybook.room.AmenityRepository;
+import com.staybook.staybook.setting.Setting;
+import com.staybook.staybook.setting.SettingRepository;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,7 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class DevDataInitializer {
     @Bean
     CommandLineRunner seedDevUsers(UserRepository repository, AmenityRepository amenityRepository,
-                                   PasswordEncoder encoder, Clock clock) {
+                                   SettingRepository settingRepository, PasswordEncoder encoder, Clock clock) {
         return args -> {
             List<String> emails = List.of("admin@staybook.local", "staff1@staybook.local",
                 "staff2@staybook.local", "guest1@staybook.local", "guest2@staybook.local");
@@ -38,6 +40,19 @@ public class DevDataInitializer {
             for (String name : amenities) {
                 if (amenityRepository.findAll().stream().noneMatch(a -> a.getName().equals(name))) {
                     amenityRepository.save(new Amenity(name));
+                }
+            }
+            List<Setting> defaults = List.of(
+                new Setting("deposit.percent", "30"),
+                new Setting("hold.minutes", "30"),
+                new Setting("refund.hours", "48"),
+                new Setting("max.pending.per.guest", "3"),
+                new Setting("bank.name", "VCB"),
+                new Setting("bank.account", "0000000000"),
+                new Setting("bank.holder", "STAYBOOK"));
+            for (Setting setting : defaults) {
+                if (settingRepository.findByKey(setting.getKey()).isEmpty()) {
+                    settingRepository.save(setting);
                 }
             }
         };

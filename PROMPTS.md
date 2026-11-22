@@ -52,7 +52,7 @@ Việc cần làm:
    - RoomTypeRepository.findByIdForUpdate dùng PESSIMISTIC_WRITE;
    - tìm phòng ACTIVE của một loại phòng không có booking giữ chỗ chồng lấn và không có RoomBlock chồng lấn.
 3. Viết vài test @DataJpaTest (H2): lưu/đọc Booking cùng BookingNight; truy vấn chồng lấn đúng với trường hợp liền kề (trả ngày 8, nhận ngày 8 thì KHÔNG chồng lấn).
-4. Tạo file docs/ERD.md chứa sơ đồ quan hệ dạng mermaid (erDiagram) đúng với entity vừa tạo, để em đối chiếu với tài liệu SRS.
+4. Tạo file docs/ERD.md chứa sơ đồ quan hệ dạng mermaid (erDiagram) đúng với entity vừa tạo, để tôi đối chiếu với tài liệu SRS.
 
 Tiêu chí hoàn thành: "mvn clean test" qua; ứng dụng khởi động với profile dev và tạo đủ bảng trong MySQL.
 
@@ -106,7 +106,7 @@ Tiêu chí hoàn thành: test qua; ADMIN tạo được 4 loại phòng và 20 p
 Khi xong: liệt kê file, giải thích luồng tải ảnh an toàn, nêu việc chưa làm.
 ```
 
-### Prompt 5 – Tính giá (logic cốt lõi, em sẽ đọc kỹ từng dòng)
+### Prompt 5 – Tính giá (logic cốt lõi, tôi sẽ đọc kỹ từng dòng)
 
 ```text
 Đọc #file:PROJECT.md (mục 5 BR-08, BR-09, BR-16, mục 5.3, 5.4 bước 4) và #file:.github/copilot-instructions.md.
@@ -161,7 +161,7 @@ Việc cần làm:
 2. BookingStatemachine / bảng chuyển trạng thái đúng mục 6. Mọi chuyển trạng thái đi qua đây và ghi BookingEvent. Chuyển PENDING_DEPOSIT → AWAITING_CONFIRMATION cho khách chủ booking, từ chối nếu quá hạn giữ chỗ.
 3. GET /booking/new (bước Thông tin): hiện loại phòng, ngày, số khách, thông tin liên hệ (lấy từ hồ sơ, sửa được), ghi chú, bảng giá từng đêm, tổng tiền, tiền cọc, chính sách hủy. Nếu ngày nhận cách thời điểm đặt dưới 48 giờ: cảnh báo "Đặt phòng này sẽ không được hoàn cọc nếu hủy." và bắt buộc tích ô xác nhận. Chưa đăng nhập thì chuyển tới đăng nhập rồi quay lại đúng lựa chọn.
 4. POST /booking → tạo booking. Hết phòng giữa chừng: báo "Loại phòng này vừa hết phòng trong các ngày bạn chọn. Vui lòng chọn ngày hoặc loại phòng khác." Quá BR-24: báo cần thanh toán hoặc hủy bớt đặt phòng đang chờ.
-5. GET /booking/{code}/payment: thanh toán cọc: mã đặt, số tiền cọc, ảnh VietQR (số tiền + nội dung chuyển khoản = mã đặt; nếu không tạo được ảnh thì hiện số tài khoản và nội dung bằng chữ), thông tin tài khoản từ Setting, đồng hồ đếm ngược giữ chỗ, nút "em đã chuyển khoản" (POST /booking/{code}/paid-notice). Thanh tiến trình 4 bước: Chọn phòng → Thông tin → Chuyển cọc → Hoàn tất. Kiểm tra chủ sở hữu booking.
+5. GET /booking/{code}/payment: thanh toán cọc: mã đặt, số tiền cọc, ảnh VietQR (số tiền + nội dung chuyển khoản = mã đặt; nếu không tạo được ảnh thì hiện số tài khoản và nội dung bằng chữ), thông tin tài khoản từ Setting, đồng hồ đếm ngược giữ chỗ, nút "Tôi đã chuyển khoản" (POST /booking/{code}/paid-notice). Thanh tiến trình 4 bước: Chọn phòng → Thông tin → Chuyển cọc → Hoàn tất. Kiểm tra chủ sở hữu booking.
 6. Test: unit test createBooking (giá, cọc, trạng thái, hạn giữ chỗ); BookingConcurrencyTest: hai luồng cùng đặt phòng cuối cùng của một loại → chỉ một thành công, không có hai booking chồng lấn trên cùng phòng; đặt liền kề hợp lệ; BR-24; form bị sửa giá vẫn dùng giá máy chủ.
 
 Tiêu chí hoàn thành: test qua (đặc biệt test đồng thời, chạy nhiều lần vẫn qua); thử thủ công đặt phòng từ lúc tìm đến trang chuyển cọc.
@@ -169,7 +169,7 @@ Tiêu chí hoàn thành: test qua (đặc biệt test đồng thời, chạy nhi
 Khi xong: liệt kê file, giải thích bằng lời từng bước vì sao không thể đặt trùng, nêu việc chưa làm.
 ```
 
-### Prompt 7B – Đặt phòng của em và hủy phòng
+### Prompt 7B – Đặt phòng của tôi và hủy phòng
 
 ```text
 Đọc #file:PROJECT.md (mục 5 BR-11, BR-20, mục 5.5, 5.6, mục 6, mục 7 phần Khách) và #file:.github/copilot-instructions.md.
@@ -207,7 +207,7 @@ Việc cần làm:
 5. Fragment huy hiệu trạng thái dùng chung (xem mục 9). Nút lớn, ít bước, hộp thoại xác nhận cho thao tác từ chối.
 6. Test: PaymentLedgerTest; confirm-deposit đủ/thiếu tiền; STAFF mới dùng được, GUEST bị từ chối.
 
-Tiêu chí hoàn thành: test qua; thử thủ công: khách đặt phòng, bấm "em đã chuyển khoản", lễ tân xác nhận, khách thấy trạng thái Đã xác nhận.
+Tiêu chí hoàn thành: test qua; thử thủ công: khách đặt phòng, bấm "Tôi đã chuyển khoản", lễ tân xác nhận, khách thấy trạng thái Đã xác nhận.
 
 Khi xong: liệt kê file, giải thích sổ thanh toán và vì sao không cho sửa/xóa khoản đã ghi, nêu việc chưa làm.
 ```
@@ -244,7 +244,7 @@ Việc cần làm:
 1. Bật Spring Scheduling. BookingExpiryJob chạy mỗi phút (fixedDelay): tìm booking PENDING_DEPOSIT có holdExpiresAt < now (lấy now từ Clock); với từng booking mở giao dịch riêng, đọc lại trạng thái và chỉ chuyển sang EXPIRED nếu vẫn là PENDING_DEPOSIT; ghi BookingEvent với actor "SYSTem". Lỗi ở một booking không làm dừng các booking còn lại.
 2. Sau khi EXPIRED, phòng phải xuất hiện lại khi tìm kiếm.
 3. Test (Clock cố định): đặt lúc 10:00 không cọc, lúc 10:31 chạy job → EXPIRED; chạy job hai lần không lỗi; khách bấm "đã chuyển khoản" trước khi job chạy thì KHÔNG bị hết hạn; khách bấm đúng lúc quá hạn thì bị từ chối; booking AWAITING_CONFIRMATION không bao giờ bị job hủy.
-4. Hiển thị cho khách trên trang "Đặt phòng của em" thông báo "Đặt phòng đã hết hạn giữ chỗ. Vui lòng đặt lại." với nút đặt lại.
+4. Hiển thị cho khách trên trang "Đặt phòng của tôi" thông báo "Đặt phòng đã hết hạn giữ chỗ. Vui lòng đặt lại." với nút đặt lại.
 
 Tiêu chí hoàn thành: test qua; thử thủ công bằng cách đặt tạm hold.minutes = 1.
 
@@ -379,7 +379,7 @@ Việc cần làm:
 3. docs/DemO.md: kịch bản demo 8 đến 10 phút gồm các bước bấm cụ thể: (a) khách tìm phòng và thấy giá cuối tuần; (b) đặt phòng, thấy đếm ngược giữ chỗ; (c) báo đã chuyển khoản; (d) lễ tân xác nhận cọc; (e) minh họa chống trùng: hai tab trình duyệt cùng đặt phòng cuối; (f) nhận phòng, thêm phụ phí, thu tiền, trả phòng, in hóa đơn; (g) hủy sớm và hủy sát giờ để thấy khác biệt hoàn cọc; (h) sơ đồ phòng; (i) báo cáo công suất và doanh thu.
 4. Chạy toàn bộ test và đảm bảo qua. Liệt kê test nào có, test nào còn thiếu so với mục 11.
 
-Khi xong: liệt kê file và cách em chạy thử toàn bộ.
+Khi xong: liệt kê file và cách tôi chạy thử toàn bộ.
 ```
 
 ---
@@ -389,10 +389,10 @@ Khi xong: liệt kê file và cách em chạy thử toàn bộ.
 ### A. Prompt giải thích (dùng sau MỖI bước, để chuẩn bị bảo vệ)
 
 ```text
-Hãy giải thích phần vừa làm (các file thay đổi trong git diff) cho em như đang chuẩn bị bảo vệ trước giảng viên:
+Hãy giải thích phần vừa làm (các file thay đổi trong git diff) cho tôi như đang chuẩn bị bảo vệ trước giảng viên:
 1. Luồng xử lý từ lúc người dùng bấm nút đến lúc ghi vào CSDL, đi qua những lớp nào.
 2. Các quy tắc nghiệp vụ được cài ở đâu (tên lớp, tên hàm).
-3. Những chỗ dễ sai hoặc em nên đọc kỹ nhất, và vì sao.
+3. Những chỗ dễ sai hoặc tôi nên đọc kỹ nhất, và vì sao.
 4. 3 câu hỏi giảng viên có thể hỏi về phần này và gợi ý trả lời.
 Giải thích bằng tiếng Việt đơn giản, kèm ví dụ số cụ thể khi có thể.
 ```
@@ -400,17 +400,17 @@ Giải thích bằng tiếng Việt đơn giản, kèm ví dụ số cụ thể 
 ### B. Prompt sửa lỗi (dán kèm đoạn log lỗi)
 
 ```text
-Ứng dụng bị lỗi khi em làm như sau: [mô tả thao tác]. Log lỗi:
+Ứng dụng bị lỗi khi tôi làm như sau: [mô tả thao tác]. Log lỗi:
 
 [dán log]
 
-Hãy tìm nguyên nhân gốc (không chỉ che lỗi), sửa với thay đổi nhỏ nhất, thêm test tái hiện lỗi này rồi chạy lại toàn bộ test. Báo cho em biết nguyên nhân là gì và vì sao cách sửa này đúng.
+Hãy tìm nguyên nhân gốc (không chỉ che lỗi), sửa với thay đổi nhỏ nhất, thêm test tái hiện lỗi này rồi chạy lại toàn bộ test. Báo cho tôi biết nguyên nhân là gì và vì sao cách sửa này đúng.
 ```
 
 ### C. Prompt tự rà soát code vừa viết
 
 ```text
-Hãy đóng vai người review code nghiêm khắc cho các thay đổi gần nhất (git diff). Kiểm tra: đúng quy tắc trong #file:PROJECT.md chưa; có chỗ nào tin dữ liệu từ trình duyệt; thiếu @Transactional hoặc kiểm tra quyền; thiếu test cho ca biên; code khó hiểu với người mới. Liệt kê vấn đề theo mức độ, đề xuất sửa, CHƯA sửa cho tới khi em đồng ý.
+Hãy Đóng vai người review code nghiêm khắc cho các thay đổi gần nhất (git diff). Kiểm tra: đúng quy tắc trong #file:PROJECT.md chưa; có chỗ nào tin dữ liệu từ trình duyệt; thiếu @Transactional hoặc kiểm tra quyền; thiếu test cho ca biên; code khó hiểu với người mới. Liệt kê vấn đề theo mức độ, đề xuất sửa, CHƯA sửa cho tới khi tôi đồng ý.
 ```
 
 ### D. Prompt khi mở cuộc trò chuyện mới giữa chừng

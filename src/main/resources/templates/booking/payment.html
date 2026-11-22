@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Chuyển cọc</title></head>
+<body><main class="container">
+  <h1>Chuyển cọc</h1>
+  <p>Chọn phòng → Thông tin → <strong>Chuyển cọc</strong> → Hoàn tất</p>
+  <p>Mã đặt phòng: <strong th:text="${booking.code}"></strong></p>
+  <p>Số tiền cọc: <strong th:text="${booking.depositAmount + ' ₫'}"></strong></p>
+  <p>Tài khoản: <span th:text="${bank.account}"></span> - <span th:text="${bank.holder}"></span></p>
+  <p>Nội dung chuyển khoản: <strong th:text="${booking.code}"></strong></p>
+  <p>Hạn giữ chỗ: <strong th:text="${booking.holdExpiresAt}"></strong></p>
+  <p id="hold-countdown" th:attr="data-expiry=${booking.holdExpiresAt}"></p>
+  <img th:if="${qrUrl}" th:src="${qrUrl}" alt="Mã QR chuyển khoản" width="240">
+  <p th:if="${param.submitted}">Đã ghi nhận thông báo chuyển khoản. Lễ tân sẽ xác nhận.</p>
+  <p th:if="${param.error}" class="alert alert-danger">
+    Không thể ghi nhận thông báo chuyển khoản. Vui lòng kiểm tra bạn đang đăng nhập đúng tài khoản đã đặt phòng và thời gian giữ chỗ chưa hết.
+  </p>
+  <form th:if="${booking.status.name() == 'PENDING_DEPOSIT'}"
+        th:action="@{/booking/{code}/paid-notice(code=${booking.code})}" method="post">
+    <button type="submit">Tôi đã chuyển khoản</button>
+  </form>
+</main>
+<script>
+  const timer = document.getElementById('hold-countdown');
+  if (timer && timer.dataset.expiry) {
+    const expiry = new Date(timer.dataset.expiry.replace(' ', 'T'));
+    const tick = () => {
+      const seconds = Math.max(0, Math.floor((expiry - new Date()) / 1000));
+      timer.textContent = seconds ? 'Thời gian giữ chỗ còn: ' + Math.floor(seconds / 60) + ' phút ' + seconds % 60 + ' giây' : 'Đã hết thời gian giữ chỗ';
+    };
+    tick(); setInterval(tick, 1000);
+  }
+</script>
+</body></html>

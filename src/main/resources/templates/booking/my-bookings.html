@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Đặt phòng của tôi</title></head>
+<body><main class="container">
+  <h1>Đặt phòng của tôi</h1>
+  <div th:if="${#lists.isEmpty(bookings)}">
+    <p>Bạn chưa có đặt phòng nào.</p><a href="/">Tìm phòng</a>
+  </div>
+  <ul th:unless="${#lists.isEmpty(bookings)}">
+    <li th:each="booking : ${bookings}">
+      <a th:href="@{'/my-bookings/' + booking.code}" th:text="${booking.code}"></a>
+      <span th:switch="${booking.status.name()}">
+        <span th:case="'PENDING_DEPOSIT'">Chờ cọc</span>
+        <span th:case="'AWAITING_CONFIRMATION'">Chờ xác nhận cọc</span>
+        <span th:case="'CONFIRMED'">Đã xác nhận</span>
+        <span th:case="'CHECKED_IN'">Đang ở</span>
+        <span th:case="'CHECKED_OUT'">Đã trả phòng</span>
+        <span th:case="'CANCELLED'">Đã hủy</span>
+        <span th:case="'EXPIRED'">Hết hạn</span>
+        <span th:case="'NO_SHOW'">Không đến</span>
+      </span>
+      <span th:text="${booking.checkInDate + ' - ' + booking.checkOutDate}"></span>
+    </li>
+  </ul>
+</main></body></html>
