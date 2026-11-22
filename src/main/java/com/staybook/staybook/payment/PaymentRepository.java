@@ -2,4 +2,6 @@ package com.staybook.staybook.payment;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface PaymentRepository extends JpaRepository<Payment, Long> {}
+public interface PaymentRepository extends JpaRepository<Payment, Long> {
+    java.util.List<Payment> findByBookingIdOrderByRecordedAtAsc(Long bookingId);
+}

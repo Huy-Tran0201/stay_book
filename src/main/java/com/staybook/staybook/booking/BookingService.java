@@ -6,6 +6,11 @@ import com.staybook.staybook.pricing.PricingService;
 import com.staybook.staybook.room.*;
 import com.staybook.staybook.setting.SettingRepository;
 import com.staybook.staybook.user.User;
+import com.staybook.staybook.audit.AuditService;
+import com.staybook.staybook.payment.Payment;
+import com.staybook.staybook.payment.PaymentRepository;
+import com.staybook.staybook.payment.PaymentType;
+import com.staybook.staybook.common.exception.ResourceNotFoundException;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -27,15 +32,22 @@ public class BookingService {
     private final PricingService pricingService;
     private final SettingRepository settingRepository;
     private final Clock clock;
+    private final CancellationPolicy cancellationPolicy;
+    private final AuditService auditService;
+    private final PaymentRepository paymentRepository;
 
     public BookingService(BookingRepository bookingRepository, BookingNightRepository nightRepository,
             BookingEventRepository eventRepository, RoomTypeRepository roomTypeRepository,
             RoomRepository roomRepository, PricingService pricingService,
-            SettingRepository settingRepository, Clock clock) {
+            SettingRepository settingRepository, Clock clock, AuditService auditService,
+            PaymentRepository paymentRepository) {
         this.bookingRepository = bookingRepository; this.nightRepository = nightRepository;
         this.eventRepository = eventRepository; this.roomTypeRepository = roomTypeRepository;
         this.roomRepository = roomRepository; this.pricingService = pricingService;
         this.settingRepository = settingRepository; this.clock = clock;
+        this.cancellationPolicy = new CancellationPolicy();
+        this.auditService = auditService;
+        this.paymentRepository = paymentRepository;
     }
 
     @Transactional
@@ -70,26 +82,53 @@ public class BookingService {
     @Transactional
     public Booking cancelBooking(String code, User user, String reason) {
         Booking booking = bookingRepository.findByCodeForUpdate(code)
-            .orElseThrow(() -> new BusinessException("Không tìm thấy đặt phòng."));
+            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đặt phòng."));
         if (booking.getUser() == null || user == null || !Objects.equals(booking.getUser().getId(), user.getId()))
-            throw new BusinessException("Bạn không có quyền với đặt phòng này.");
+            throw new ResourceNotFoundException("Không tìm thấy đặt phòng.");
         if (!EnumSet.of(BookingStatus.PENDING_DEPOSIT, BookingStatus.AWAITING_CONFIRMATION,
                 BookingStatus.CONFIRMED).contains(booking.getStatus()))
             throw new BusinessException("Đặt phòng này không thể hủy.");
         LocalDateTime now = LocalDateTime.now(clock);
         boolean checkNeeded = booking.getStatus() == BookingStatus.AWAITING_CONFIRMATION;
-        long refund = 0;
-        if (booking.getStatus() == BookingStatus.CONFIRMED
-                && !now.isAfter(booking.getCheckInDate().atTime(14, 0)
-                    .minusHours(setting("refund.hours", 48)))) {
-            refund = booking.getDepositAmount();
-        }
+        long refund = cancellationPolicy.refundEligibleAmount(
+            booking, now, setting("refund.hours", 48), recordedDepositAmount(booking));
         BookingStatus old = booking.getStatus();
         booking.cancel(CancelCause.GUEST_REQUEST, reason, now, refund, checkNeeded);
         bookingRepository.save(booking);
         eventRepository.save(new BookingEvent(booking, old, BookingStatus.CANCELLED,
             user.getEmail(), reason, now));
+        auditService.record(user, "CANCEL_BOOKING",
+            "Hủy đặt phòng " + booking.getCode() + ", số tiền dự kiến hoàn " + refund + " đồng");
         return booking;
+    }
+
+    @Transactional(readOnly = true)
+    public Booking findOwnedBooking(String code, User user) {
+        Booking booking = bookingRepository.findByCode(code)
+            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đặt phòng."));
+        if (booking.getUser() == null || user == null || !Objects.equals(booking.getUser().getId(), user.getId())) {
+            throw new ResourceNotFoundException("Không tìm thấy đặt phòng.");
+        }
+        return booking;
+    }
+
+    @Transactional(readOnly = true)
+    public long refundPreview(String code, User user) {
+        Booking booking = findOwnedBooking(code, user);
+        if (!EnumSet.of(BookingStatus.PENDING_DEPOSIT, BookingStatus.AWAITING_CONFIRMATION,
+                BookingStatus.CONFIRMED).contains(booking.getStatus())) {
+            return 0;
+        }
+        return cancellationPolicy.refundEligibleAmount(
+            booking, LocalDateTime.now(clock), setting("refund.hours", 48),
+            recordedDepositAmount(booking));
+    }
+
+    private long recordedDepositAmount(Booking booking) {
+        return paymentRepository.findByBookingIdOrderByRecordedAtAsc(booking.getId()).stream()
+            .filter(payment -> payment.getType() == PaymentType.DEPOSIT)
+            .mapToLong(com.staybook.staybook.payment.Payment::getAmount)
+            .sum();
     }
 
     @Transactional

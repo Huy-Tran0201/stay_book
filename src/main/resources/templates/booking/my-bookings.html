@@ -1,25 +1,22 @@
 <!doctype html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><title>Đặt phòng của tôi</title></head>
-<body><main class="container">
-  <h1>Đặt phòng của tôi</h1>
+<head th:replace="~{layout/main :: head('Đặt phòng của tôi')}"></head>
+<body><nav th:replace="~{layout/main :: header}"></nav><main class="container py-4">
+  <h1 class="h3 mb-3">Đặt phòng của tôi</h1>
   <div th:if="${#lists.isEmpty(bookings)}">
-    <p>Bạn chưa có đặt phòng nào.</p><a href="/">Tìm phòng</a>
+    <div class="alert alert-light border">
+      <p th:text="#{booking.empty.title}"></p>
+      <a class="btn btn-primary" th:href="@{/}" th:text="#{booking.empty.action}"></a>
+    </div>
   </div>
-  <ul th:unless="${#lists.isEmpty(bookings)}">
-    <li th:each="booking : ${bookings}">
-      <a th:href="@{'/my-bookings/' + booking.code}" th:text="${booking.code}"></a>
-      <span th:switch="${booking.status.name()}">
-        <span th:case="'PENDING_DEPOSIT'">Chờ cọc</span>
-        <span th:case="'AWAITING_CONFIRMATION'">Chờ xác nhận cọc</span>
-        <span th:case="'CONFIRMED'">Đã xác nhận</span>
-        <span th:case="'CHECKED_IN'">Đang ở</span>
-        <span th:case="'CHECKED_OUT'">Đã trả phòng</span>
-        <span th:case="'CANCELLED'">Đã hủy</span>
-        <span th:case="'EXPIRED'">Hết hạn</span>
-        <span th:case="'NO_SHOW'">Không đến</span>
+  <div th:unless="${#lists.isEmpty(bookings)}" class="list-group">
+    <a th:each="booking : ${bookings}" th:href="@{/my-bookings/{code}(code=${booking.code})}"
+       class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+      <span>
+        <strong th:text="${booking.code}"></strong>
+        <span class="d-block text-muted" th:text="${booking.checkInDate + ' - ' + booking.checkOutDate}"></span>
       </span>
-      <span th:text="${booking.checkInDate + ' - ' + booking.checkOutDate}"></span>
-    </li>
-  </ul>
-</main></body></html>
+      <span th:replace="~{fragments/status-badge :: statusBadge(${booking.status})}"></span>
+    </a>
+  </div>
+</main><footer th:replace="~{layout/main :: footer}"></footer></body></html>

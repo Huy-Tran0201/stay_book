@@ -1,31 +1,51 @@
 <!doctype html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><title>Chi tiết đặt phòng</title></head>
-<body><main class="container">
-  <h1>Chi tiết đặt phòng</h1>
+<head th:replace="~{layout/main :: head('Chi tiết đặt phòng')}"></head>
+<body><nav th:replace="~{layout/main :: header}"></nav><main class="container py-4">
+  <h1 class="h3">Chi tiết đặt phòng</h1>
   <p th:if="${message}" th:text="${message}" class="alert alert-danger"></p>
   <p>Mã đặt phòng: <strong th:text="${booking.code}"></strong></p>
-  <p>Trạng thái:
-    <strong th:switch="${booking.status.name()}">
-      <span th:case="'PENDING_DEPOSIT'">Chờ cọc</span>
-      <span th:case="'AWAITING_CONFIRMATION'">Chờ xác nhận cọc</span>
-      <span th:case="'CONFIRMED'">Đã xác nhận</span>
-      <span th:case="'CHECKED_IN'">Đang ở</span>
-      <span th:case="'CHECKED_OUT'">Đã trả phòng</span>
-      <span th:case="'CANCELLED'">Đã hủy</span>
-      <span th:case="'EXPIRED'">Hết hạn</span>
-      <span th:case="'NO_SHOW'">Không đến</span>
-    </strong>
-  </p>
+  <p>Trạng thái: <span th:replace="~{fragments/status-badge :: statusBadge(${booking.status})}"></span></p>
   <p th:text="${booking.checkInDate + ' - ' + booking.checkOutDate}"></p>
-  <p>Tổng tiền: <strong th:text="${booking.totalRoomAmount + ' ₫'}"></strong></p>
-  <p>Tiền cọc: <strong th:text="${booking.depositAmount + ' ₫'}"></strong></p>
-  <p th:if="${booking.status.name() == 'CONFIRMED'}">Phòng: <strong th:text="${booking.room.roomNumber}"></strong></p>
-  <p th:if="${param.cancelled}">Đã hủy đặt phòng. Tiền được hoàn theo chính sách.</p>
+  <p>Tổng tiền phòng: <strong th:text="${#numbers.formatDecimal(booking.totalRoomAmount, 1, 'POINT', 0, 'COMMA') + ' ₫'}"></strong></p>
+  <p>Tiền cọc: <strong th:text="${#numbers.formatDecimal(booking.depositAmount, 1, 'POINT', 0, 'COMMA') + ' ₫'}"></strong></p>
+  <p th:if="${booking.status.name() == 'CONFIRMED'}">Số phòng: <strong th:text="${booking.room.roomNumber}"></strong></p>
+  <p th:if="${holdExpiresAt != null}">Hạn giữ chỗ: <strong th:text="${#temporals.format(holdExpiresAt, 'dd/MM/yyyy HH:mm')}"></strong></p>
+
+  <h2 class="h5 mt-4">Các đêm và giá</h2>
+  <table class="table table-sm"><tbody>
+    <tr th:each="night : ${nights}">
+      <td th:text="${#temporals.format(night.date, 'dd/MM/yyyy')}"></td>
+      <td class="text-end" th:text="${#numbers.formatDecimal(night.price, 1, 'POINT', 0, 'COMMA') + ' ₫'}"></td>
+    </tr>
+  </tbody></table>
+
+  <h2 class="h5 mt-3">Thanh toán</h2>
+  <table class="table table-sm"><tbody>
+    <tr th:each="payment : ${payments}">
+      <td th:text="${payment.type}"></td>
+      <td th:text="${#temporals.format(payment.recordedAt, 'dd/MM/yyyy HH:mm')}"></td>
+      <td class="text-end" th:text="${#numbers.formatDecimal(payment.amount, 1, 'POINT', 0, 'COMMA') + ' ₫'}"></td>
+    </tr>
+  </tbody></table>
+  <p>Đã thanh toán: <strong th:text="${#numbers.formatDecimal(paid, 1, 'POINT', 0, 'COMMA') + ' ₫'}"></strong></p>
+  <p>Tổng phải thu: <strong th:text="${#numbers.formatDecimal(totalDue, 1, 'POINT', 0, 'COMMA') + ' ₫'}"></strong></p>
+  <p>Còn lại: <strong th:text="${#numbers.formatDecimal(remaining, 1, 'POINT', 0, 'COMMA') + ' ₫'}"></strong></p>
+
+  <p th:if="${booking.cancelledAt != null}">Thời điểm hủy: <strong th:text="${#temporals.format(booking.cancelledAt, 'dd/MM/yyyy HH:mm')}"></strong></p>
+  <p th:if="${booking.cancelledAt != null}">Số tiền dự kiến hoàn: <strong th:text="${#numbers.formatDecimal(booking.refundEligibleAmount, 1, 'POINT', 0, 'COMMA') + ' ₫'}"></strong></p>
+  <p th:if="${booking.refundCheckNeeded}" class="alert alert-warning">Cần lễ tân đối chiếu và hoàn tiền thủ công nếu đã nhận cọc.</p>
+  <p th:if="${param.cancelled}">Đã hủy đặt phòng.</p>
   <form th:if="${booking.status.name() == 'PENDING_DEPOSIT' or booking.status.name() == 'AWAITING_CONFIRMATION' or booking.status.name() == 'CONFIRMED'}"
-        th:action="@{'/my-bookings/' + booking.code + '/cancel'}" method="post"
-        onsubmit="return confirm('Bạn chắc chắn muốn hủy đặt phòng?')">
-    <input name="reason" value="Khách yêu cầu hủy">
-    <button type="submit">Hủy đặt phòng</button>
+        th:action="@{/my-bookings/{code}/cancel(code=${booking.code})}" method="post"
+        th:attr="data-confirm=#{booking.cancel.confirm}"
+        onsubmit="return confirm(this.dataset.confirm)">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+    <label class="form-label">Lý do hủy</label>
+    <input class="form-control mb-2" name="reason" value="Khách yêu cầu hủy" maxlength="500">
+    <div class="alert alert-warning">Số tiền được hoàn dự kiến:
+      <strong th:text="${#numbers.formatDecimal(refundPreview, 1, 'POINT', 0, 'COMMA') + ' ₫'}"></strong>
+    </div>
+    <button class="btn btn-danger" type="submit">Hủy đặt phòng</button>
   </form>
-</main></body></html>
+</main><footer th:replace="~{layout/main :: footer}"></footer></body></html>

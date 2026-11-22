@@ -16,6 +16,9 @@
         <div id="mainMenu" class="collapse navbar-collapse">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item"><a class="nav-link" th:href="@{/}">Trang chủ</a></li>
+                <li class="nav-item" sec:authorize="hasRole('GUEST')">
+                    <a class="nav-link" th:href="@{/my-bookings}">Đặt phòng của tôi</a>
+                </li>
                 <li class="nav-item" sec:authorize="hasAnyRole('STAFF','ADMIN')">
                     <a class="nav-link" th:href="@{/staff/today}">Lễ tân</a>
                 </li>

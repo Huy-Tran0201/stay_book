@@ -8,6 +8,12 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public String handleResourceNotFound(ResourceNotFoundException exception, Model model) {
+        model.addAttribute("message", exception.getMessage());
+        return "error/404";
+    }
+
     @ExceptionHandler(BusinessException.class)
     public String handleBusinessException(BusinessException exception, Model model) {
         model.addAttribute("message", exception.getMessage());

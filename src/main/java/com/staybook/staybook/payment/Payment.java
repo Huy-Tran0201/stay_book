@@ -17,4 +17,14 @@ public class Payment {
     @ManyToOne(fetch = FetchType.LAZY, optional = false) @JoinColumn(name = "recorded_by_id") private User recordedBy;
     @Column(nullable = false) private LocalDateTime recordedAt;
     protected Payment() {}
+    public Payment(Booking booking, PaymentType type, long amount, PaymentMethod method,
+                   String note, User recordedBy, LocalDateTime recordedAt) {
+        this.booking = booking; this.type = type; this.amount = amount; this.method = method;
+        this.note = note; this.recordedBy = recordedBy; this.recordedAt = recordedAt;
+    }
+    public PaymentType getType() { return type; }
+    public long getAmount() { return amount; }
+    public PaymentMethod getMethod() { return method; }
+    public String getNote() { return note; }
+    public LocalDateTime getRecordedAt() { return recordedAt; }
 }

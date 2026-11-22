@@ -15,4 +15,11 @@ public class Surcharge {
     @ManyToOne(fetch = FetchType.LAZY, optional = false) @JoinColumn(name = "recorded_by_id") private User recordedBy;
     @Column(nullable = false) private LocalDateTime recordedAt;
     protected Surcharge() {}
+    public Surcharge(Booking booking, String name, long amount, User recordedBy, LocalDateTime recordedAt) {
+        this.booking = booking; this.name = name; this.amount = amount;
+        this.recordedBy = recordedBy; this.recordedAt = recordedAt;
+    }
+    public String getName() { return name; }
+    public long getAmount() { return amount; }
+    public LocalDateTime getRecordedAt() { return recordedAt; }
 }

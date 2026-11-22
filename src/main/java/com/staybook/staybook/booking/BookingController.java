@@ -4,6 +4,9 @@ import com.staybook.staybook.common.exception.BusinessException;
 import com.staybook.staybook.pricing.PricingService;
 import com.staybook.staybook.room.RoomTypeRepository;
 import com.staybook.staybook.setting.SettingRepository;
+import com.staybook.staybook.payment.PaymentRepository;
+import com.staybook.staybook.payment.SurchargeRepository;
+import com.staybook.staybook.common.exception.ResourceNotFoundException;
 import com.staybook.staybook.user.User;
 import com.staybook.staybook.user.UserRepository;
 import jakarta.validation.Valid;
@@ -29,11 +32,16 @@ public class BookingController {
     private final BookingRepository bookings;
     private final SettingRepository settings;
     private final Clock clock;
+    private final BookingNightRepository bookingNights;
+    private final PaymentRepository payments;
+    private final SurchargeRepository surcharges;
     public BookingController(BookingService bookingService, BookingStateMachine stateMachine,
             RoomTypeRepository roomTypes, UserRepository users, PricingService pricing, BookingRepository bookings,
-            SettingRepository settings, Clock clock) {
+            SettingRepository settings, Clock clock, BookingNightRepository bookingNights,
+            PaymentRepository payments, SurchargeRepository surcharges) {
         this.bookingService = bookingService; this.stateMachine = stateMachine; this.roomTypes = roomTypes;
         this.users = users; this.pricing = pricing; this.bookings = bookings; this.settings = settings; this.clock = clock;
+        this.bookingNights = bookingNights; this.payments = payments; this.surcharges = surcharges;
     }
 
     @GetMapping("/booking/new")
@@ -113,9 +121,28 @@ public class BookingController {
     @GetMapping("/my-bookings/{code}")
     public String bookingDetail(@PathVariable String code, Authentication auth, Model model) {
         User user = currentUser(auth);
-        Booking booking = ownedBooking(code, user);
-        model.addAttribute("booking", booking);
+        Booking booking = bookingService.findOwnedBooking(code, user);
+        populateBookingDetail(model, booking, user);
         return "booking/detail";
+    }
+
+    private void populateBookingDetail(Model model, Booking booking, User user) {
+        model.addAttribute("booking", booking);
+        model.addAttribute("nights", bookingNights.findByBookingIdOrderByDateAsc(booking.getId()));
+        model.addAttribute("payments", payments.findByBookingIdOrderByRecordedAtAsc(booking.getId()));
+        model.addAttribute("surcharges", surcharges.findByBookingIdOrderByRecordedAtAsc(booking.getId()));
+        model.addAttribute("refundPreview", bookingService.refundPreview(booking.getCode(), user));
+        model.addAttribute("holdExpiresAt", booking.getHoldExpiresAt());
+        long paid = payments.findByBookingIdOrderByRecordedAtAsc(booking.getId()).stream()
+            .mapToLong(payment -> switch (payment.getType()) {
+                case DEPOSIT, EXTRA_PAYMENT, ADJUSTMENT -> payment.getAmount();
+                case REFUND -> -payment.getAmount();
+            }).sum();
+        long surchargeTotal = surcharges.findByBookingIdOrderByRecordedAtAsc(booking.getId()).stream()
+            .mapToLong(com.staybook.staybook.payment.Surcharge::getAmount).sum();
+        model.addAttribute("paid", paid);
+        model.addAttribute("totalDue", booking.getTotalRoomAmount() + surchargeTotal);
+        model.addAttribute("remaining", booking.getTotalRoomAmount() + surchargeTotal - paid);
     }
 
     @PostMapping("/my-bookings/{code}/cancel")
@@ -126,7 +153,7 @@ public class BookingController {
             return "redirect:/my-bookings/" + code + "?cancelled";
         } catch (BusinessException ex) {
             model.addAttribute("message", ex.getMessage());
-            model.addAttribute("booking", ownedBooking(code, currentUser(auth)));
+            populateBookingDetail(model, bookingService.findOwnedBooking(code, currentUser(auth)), currentUser(auth));
             return "booking/detail";
         }
     }
