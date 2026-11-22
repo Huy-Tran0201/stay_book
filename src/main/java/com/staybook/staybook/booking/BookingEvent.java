@@ -19,4 +19,9 @@ public class BookingEvent {
         this.booking = booking; this.fromStatus = fromStatus; this.toStatus = toStatus;
         this.actor = actor; this.reason = reason; this.at = at;
     }
+    public BookingStatus getFromStatus() { return fromStatus; }
+    public BookingStatus getToStatus() { return toStatus; }
+    public String getActor() { return actor; }
+    public String getReason() { return reason; }
+    public LocalDateTime getAt() { return at; }
 }

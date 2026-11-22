@@ -27,4 +27,6 @@ public class Payment {
     public PaymentMethod getMethod() { return method; }
     public String getNote() { return note; }
     public LocalDateTime getRecordedAt() { return recordedAt; }
+    public Booking getBooking() { return booking; }
+    public User getRecordedBy() { return recordedBy; }
 }

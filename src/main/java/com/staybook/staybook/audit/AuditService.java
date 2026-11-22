@@ -18,7 +18,11 @@ public class AuditService {
 
     @Transactional
     public void record(User user, String action, String detail) {
-        repository.save(new AuditLog(user, action, "USER", user == null ? null : user.getId(),
-            detail, LocalDateTime.now(clock)));
+        record(user, action, "USER", user == null ? null : user.getId(), detail);
+    }
+
+    @Transactional
+    public void record(User user, String action, String targetType, Long targetId, String detail) {
+        repository.save(new AuditLog(user, action, targetType, targetId, detail, LocalDateTime.now(clock)));
     }
 }

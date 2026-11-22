@@ -1,7 +1,7 @@
 <span th:fragment="statusBadge(status)"
       th:switch="${status.name()}">
     <span th:case="'PENDING_DEPOSIT'" class="badge text-bg-warning">Chờ cọc</span>
-    <span th:case="'AWAITING_CONFIRMATION'" class="badge text-bg-warning">Chờ xác nhận cọc</span>
+    <span th:case="'AWAITING_CONFIRMATION'" class="badge" style="background:#fd7e14">Chờ xác nhận cọc</span>
     <span th:case="'CONFIRMED'" class="badge text-bg-primary">Đã xác nhận</span>
     <span th:case="'CHECKED_IN'" class="badge text-bg-success">Đang ở</span>
     <span th:case="'CHECKED_OUT'" class="badge text-bg-secondary">Đã trả phòng</span>

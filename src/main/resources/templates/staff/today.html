@@ -1,4 +1,64 @@
-<!DOCTYPE html><html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{layout/main :: head('Lễ tân')}"></head><body>
-<nav th:replace="~{layout/main :: header}"></nav><main class="container py-5"><h1>Lễ tân - Hôm nay</h1>
-<p class="text-muted">Trang tạm cho khu vực STAFF và ADMIN.</p></main><footer th:replace="~{layout/main :: footer}"></footer></body></html>
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout/main :: head('Việc hôm nay')}"></head>
+<body>
+<nav th:replace="~{layout/main :: header}"></nav>
+<main class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h1 class="h3 mb-1">Việc hôm nay</h1>
+      <p class="text-muted mb-0" th:text="${#temporals.format(today, 'dd/MM/yyyy')}"></p>
+    </div>
+    <a class="btn btn-primary" th:href="@{/staff/bookings}">Tìm tất cả đặt phòng</a>
+  </div>
+  <div th:replace="~{layout/main :: flash}"></div>
+
+  <section class="card mb-3">
+    <div class="card-header fw-semibold">Nhận phòng hôm nay</div>
+    <div th:replace="~{::bookingTable(${checkIns})}"></div>
+  </section>
+  <section class="card mb-3">
+    <div class="card-header fw-semibold">Trả phòng hôm nay</div>
+    <div th:replace="~{::bookingTable(${checkOuts})}"></div>
+  </section>
+  <section class="card mb-3">
+    <div class="card-header fw-semibold">Đang ở</div>
+    <div th:replace="~{::bookingTable(${staying})}"></div>
+  </section>
+  <section class="card mb-3">
+    <div class="card-header fw-semibold">Chờ xác nhận cọc</div>
+    <div th:replace="~{::bookingTable(${awaiting})}"></div>
+  </section>
+  <section class="card mb-3">
+    <div class="card-header fw-semibold">Chờ cọc sắp hết hạn</div>
+    <div th:replace="~{::bookingTable(${pending})}"></div>
+  </section>
+</main>
+
+<div th:fragment="bookingTable(bookings)">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead><tr><th>Mã</th><th>Khách</th><th>Số điện thoại</th><th>Phòng</th><th>Ngày ở</th><th>Trạng thái</th><th></th></tr></thead>
+      <tbody>
+        <tr th:each="booking : ${bookings}"
+            th:classappend="${overdueCodes != null and overdueCodes.contains(booking.code)} ? 'table-warning' : ''">
+          <td><strong th:text="${booking.code}"></strong></td>
+          <td th:text="${booking.guestName}"></td>
+          <td th:text="${booking.guestPhone}"></td>
+          <td th:text="${booking.room.roomNumber}"></td>
+          <td th:text="${#temporals.format(booking.checkInDate, 'dd/MM') + ' - ' + #temporals.format(booking.checkOutDate, 'dd/MM')}"></td>
+          <td><span th:replace="~{fragments/status-badge :: statusBadge(${booking.status})}"></span></td>
+          <td class="text-end">
+            <a class="btn btn-sm btn-primary" th:href="@{/staff/bookings/{code}(code=${booking.code})}">Mở chi tiết</a>
+          </td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(bookings)}">
+          <td colspan="7" class="text-center text-muted py-4">Không có việc cần xử lý trong nhóm này.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<footer th:replace="~{layout/main :: footer}"></footer>
+</body>
+</html>
