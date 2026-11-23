@@ -6,21 +6,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title th:text="${title} + ' - StayBook'">StayBook</title>
     <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
-<body class="bg-light">
-<nav th:fragment="header" class="navbar navbar-expand-lg navbar-dark bg-primary">
+<body>
+<nav th:fragment="header" class="navbar navbar-expand-lg sb-navbar sticky-top">
     <div class="container">
-        <a class="navbar-brand fw-bold" th:href="@{/}">StayBook</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainMenu"
+        <a class="navbar-brand" th:href="@{/}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="me-1">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            StayBook
+        </a>
+        <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#mainMenu"
                 aria-label="Mở menu"><span class="navbar-toggler-icon"></span></button>
         <div id="mainMenu" class="collapse navbar-collapse">
-            <ul class="navbar-nav me-auto">
+            <ul class="navbar-nav me-auto ms-lg-3 gap-1">
                 <li class="nav-item"><a class="nav-link" th:href="@{/}">Trang chủ</a></li>
                 <li class="nav-item" sec:authorize="hasRole('GUEST')">
                     <a class="nav-link" th:href="@{/my-bookings}">Đặt phòng của tôi</a>
                 </li>
                 <li class="nav-item" sec:authorize="hasAnyRole('STAFF','ADMIN')">
-                    <a class="nav-link" th:href="@{/staff/today}">Lễ tân</a>
+                    <a class="nav-link" th:href="@{/staff/today}">Bảng việc lễ tân</a>
                 </li>
                 <li class="nav-item" sec:authorize="hasRole('ADMIN')">
                     <a class="nav-link" th:href="@{/admin/room-types}">Loại phòng</a>
@@ -29,22 +36,30 @@
                     <a class="nav-link" th:href="@{/admin/rooms}">Phòng</a>
                 </li>
             </ul>
-            <div class="d-flex align-items-center gap-2">
-                <a class="btn btn-outline-light btn-sm" sec:authorize="!isAuthenticated()" th:href="@{/login}">Đăng nhập</a>
-                <a class="btn btn-outline-light btn-sm" sec:authorize="isAuthenticated()" th:href="@{/profile}">Hồ sơ</a>
-                <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post">
-                    <button class="btn btn-light btn-sm" type="submit">Đăng xuất</button>
+            <div class="d-flex align-items-center gap-2 pt-2 pt-lg-0">
+                <a class="btn btn-outline-primary btn-sm px-3" sec:authorize="!isAuthenticated()" th:href="@{/login}">Đăng nhập</a>
+                <a class="btn btn-outline-primary btn-sm px-3" sec:authorize="isAuthenticated()" th:href="@{/profile}">Hồ sơ</a>
+                <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post" class="m-0">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <button class="btn btn-light btn-sm text-secondary px-3" type="submit">Đăng xuất</button>
                 </form>
             </div>
         </div>
     </div>
 </nav>
 <div th:fragment="flash" class="container pt-3">
-    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
-    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+    <div th:if="${successMessage}" class="alert alert-success border-0 shadow-sm d-flex align-items-center" role="alert">
+        <span th:text="${successMessage}"></span>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger border-0 shadow-sm d-flex align-items-center" role="alert">
+        <span th:text="${errorMessage}"></span>
+    </div>
 </div>
-<footer th:fragment="footer" class="border-top mt-5 py-4 text-center text-muted">
-    <div class="container"><small>StayBook - Đặt phòng đơn giản, thuận tiện</small></div>
+<footer th:fragment="footer" class="sb-footer">
+    <div class="container text-center">
+        <div class="fw-semibold text-dark mb-1">StayBook Hospitality System</div>
+        <small class="text-muted">Hệ thống quản lý đặt phòng trực tuyến & vận hành cơ sở lưu trú</small>
+    </div>
     <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
 </footer>
 </body>

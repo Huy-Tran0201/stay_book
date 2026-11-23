@@ -4,42 +4,102 @@
 <body>
 <nav th:replace="~{layout/main :: header}"></nav>
 <div th:replace="~{layout/main :: flash}"></div>
-<main class="container py-5">
-    <section class="bg-white rounded-3 shadow-sm p-4 p-md-5">
-        <h1 class="display-5 fw-bold text-primary">Tìm phòng phù hợp</h1>
-        <p class="lead text-secondary">Chọn ngày ở và số khách để xem phòng còn trống.</p>
-        <form class="row g-3 mt-2" th:action="@{/rooms}" method="get">
-            <div class="col-12 col-md-4">
-                <label class="form-label" for="checkIn">Ngày nhận</label>
-                <input class="form-control" id="checkIn" name="checkIn" type="date"
-                       th:value="${checkIn}" th:min="${checkIn}" required>
+
+<!-- Hero Section -->
+<header class="hero-section">
+    <div class="container text-center py-4">
+        <h1 class="hero-title">Trải nghiệm nghỉ dưỡng tiện nghi & ấm áp</h1>
+        <p class="hero-subtitle">Đặt phòng trực tiếp, giá minh bạch và giữ chỗ nhanh chóng chỉ trong vài bước</p>
+    </div>
+</header>
+
+<main class="container mb-5">
+    <!-- Floating Search Box -->
+    <div class="row justify-content-center">
+        <div class="col-12 col-xl-10">
+            <section class="card p-4 p-md-4 shadow-sm border-0" style="margin-top: -1.5rem; background: #ffffff; border: 1px solid var(--sb-border) !important;">
+                <form class="row g-3 align-items-end" th:action="@{/rooms}" method="get">
+                    <div class="col-12 col-md-4">
+                        <label class="form-label" for="checkIn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1 text-muted"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                            Ngày nhận phòng
+                        </label>
+                        <input class="form-control" id="checkIn" name="checkIn" type="date"
+                               th:value="${checkIn}" th:min="${checkIn}" required>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label class="form-label" for="checkOut">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1 text-muted"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                            Ngày trả phòng
+                        </label>
+                        <input class="form-control" id="checkOut" name="checkOut" type="date"
+                               th:value="${checkOut}" th:min="${checkOut}" required>
+                    </div>
+                    <div class="col-12 col-md-2">
+                        <label class="form-label" for="guests">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1 text-muted"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                            Số khách
+                        </label>
+                        <input class="form-control" id="guests" name="guests" type="number"
+                               min="1" max="10" th:value="${guests}" required>
+                    </div>
+                    <div class="col-12 col-md-2">
+                        <button class="btn btn-primary w-100 py-2 d-flex align-items-center justify-content-center gap-1" type="submit">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            Tìm phòng
+                        </button>
+                    </div>
+                </form>
+            </section>
+        </div>
+    </div>
+
+    <!-- Hospitality Features -->
+    <section class="mt-5 pt-3">
+        <div class="row g-4 text-center">
+            <div class="col-md-4">
+                <div class="card h-100 p-4 border-0 shadow-sm" style="background:#ffffff; border:1px solid var(--sb-border) !important;">
+                    <div class="d-inline-flex p-3 rounded-circle mx-auto mb-3" style="background: var(--sb-primary-light); color: var(--sb-primary);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"></rect><line x1="6" y1="8" x2="6" y2="8"></line><line x1="10" y1="8" x2="18" y2="8"></line><line x1="6" y1="12" x2="6" y2="12"></line><line x1="10" y1="12" x2="18" y2="12"></line><line x1="6" y1="16" x2="6" y2="16"></line><line x1="10" y1="16" x2="18" y2="16"></line></svg>
+                    </div>
+                    <h2 class="h5 fw-bold mb-2">Giá minh bạch</h2>
+                    <p class="text-muted small mb-0">Bảng giá chi tiết từng đêm, áp dụng tự động giá mùa và phụ thu cuối tuần rõ ràng, không phí ẩn.</p>
+                </div>
             </div>
-            <div class="col-12 col-md-4">
-                <label class="form-label" for="checkOut">Ngày trả</label>
-                <input class="form-control" id="checkOut" name="checkOut" type="date"
-                       th:value="${checkOut}" th:min="${checkOut}" required>
+            <div class="col-md-4">
+                <div class="card h-100 p-4 border-0 shadow-sm" style="background:#ffffff; border:1px solid var(--sb-border) !important;">
+                    <div class="d-inline-flex p-3 rounded-circle mx-auto mb-3" style="background: var(--sb-primary-light); color: var(--sb-primary);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                    </div>
+                    <h2 class="h5 fw-bold mb-2">Chống đặt trùng tuyệt đối</h2>
+                    <p class="text-muted small mb-0">Hệ thống khóa phòng thông minh theo thời gian thực, đảm bảo phòng của bạn luôn sẵn sàng khi đã giữ chỗ.</p>
+                </div>
             </div>
-            <div class="col-12 col-md-2">
-                <label class="form-label" for="guests">Số khách</label>
-                <input class="form-control" id="guests" name="guests" type="number"
-                       min="1" th:value="${guests}" required>
+            <div class="col-md-4">
+                <div class="card h-100 p-4 border-0 shadow-sm" style="background:#ffffff; border:1px solid var(--sb-border) !important;">
+                    <div class="d-inline-flex p-3 rounded-circle mx-auto mb-3" style="background: var(--sb-primary-light); color: var(--sb-primary);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    </div>
+                    <h2 class="h5 fw-bold mb-2">Thanh toán cọc VietQR</h2>
+                    <p class="text-muted small mb-0">Chuyển khoản tiện lợi qua mã QR sinh tự động kèm đúng số tiền và mã đặt phòng, xác nhận nhanh chóng.</p>
+                </div>
             </div>
-            <div class="col-12 col-md-2 d-flex align-items-end">
-                <button class="btn btn-primary w-100" type="submit">Tìm phòng</button>
-            </div>
-        </form>
+        </div>
     </section>
 </main>
+
 <footer th:replace="~{layout/main :: footer}"></footer>
 <script>
     const checkIn = document.getElementById('checkIn');
     const checkOut = document.getElementById('checkOut');
-    checkIn.addEventListener('change', () => {
-        const nextDay = new Date(checkIn.value);
-        nextDay.setDate(nextDay.getDate() + 1);
-        checkOut.min = nextDay.toISOString().slice(0, 10);
-        if (checkOut.value < checkOut.min) checkOut.value = checkOut.min;
-    });
+    if (checkIn && checkOut) {
+        checkIn.addEventListener('change', () => {
+            const nextDay = new Date(checkIn.value);
+            nextDay.setDate(nextDay.getDate() + 1);
+            checkOut.min = nextDay.toISOString().slice(0, 10);
+            if (checkOut.value < checkOut.min) checkOut.value = checkOut.min;
+        });
+    }
 </script>
 </body>
 </html>

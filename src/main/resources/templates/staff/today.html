@@ -3,62 +3,132 @@
 <head th:replace="~{layout/main :: head('Việc hôm nay')}"></head>
 <body>
 <nav th:replace="~{layout/main :: header}"></nav>
-<main class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <div>
-      <h1 class="h3 mb-1">Việc hôm nay</h1>
-      <p class="text-muted mb-0" th:text="${#temporals.format(today, 'dd/MM/yyyy')}"></p>
-    </div>
-    <a class="btn btn-primary" th:href="@{/staff/bookings}">Tìm tất cả đặt phòng</a>
-  </div>
-  <div th:replace="~{layout/main :: flash}"></div>
 
-  <section class="card mb-3">
-    <div class="card-header fw-semibold">Nhận phòng hôm nay</div>
-    <div th:replace="~{::bookingTable(${checkIns})}"></div>
-  </section>
-  <section class="card mb-3">
-    <div class="card-header fw-semibold">Trả phòng hôm nay</div>
-    <div th:replace="~{::bookingTable(${checkOuts})}"></div>
-  </section>
-  <section class="card mb-3">
-    <div class="card-header fw-semibold">Đang ở</div>
-    <div th:replace="~{::bookingTable(${staying})}"></div>
-  </section>
-  <section class="card mb-3">
-    <div class="card-header fw-semibold">Chờ xác nhận cọc</div>
-    <div th:replace="~{::bookingTable(${awaiting})}"></div>
-  </section>
-  <section class="card mb-3">
-    <div class="card-header fw-semibold">Chờ cọc sắp hết hạn</div>
-    <div th:replace="~{::bookingTable(${pending})}"></div>
-  </section>
+<main class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+        <div>
+            <h1 class="h3 fw-bold mb-1 text-dark">Bảng việc hôm nay</h1>
+            <p class="text-muted small mb-0">
+                Lịch trình và tác vụ cần xử lý ngày <strong class="text-dark" th:text="${#temporals.format(today, 'dd/MM/yyyy')}"></strong>
+            </p>
+        </div>
+        <a class="btn btn-primary btn-sm px-3 shadow-sm" th:href="@{/staff/bookings}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-1"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            Tra cứu tất cả đặt phòng
+        </a>
+    </div>
+
+    <div th:replace="~{layout/main :: flash}"></div>
+
+    <!-- Quick Stats Metric Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="card p-3 border-0 shadow-sm" style="border: 1px solid var(--sb-border) !important;">
+                <div class="small text-muted mb-1">Nhận phòng hôm nay</div>
+                <div class="h3 fw-bold text-primary mb-0" th:text="${checkIns.size()}">0</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card p-3 border-0 shadow-sm" style="border: 1px solid var(--sb-border) !important;">
+                <div class="small text-muted mb-1">Trả phòng hôm nay</div>
+                <div class="h3 fw-bold text-secondary mb-0" th:text="${checkOuts.size()}">0</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card p-3 border-0 shadow-sm" style="border: 1px solid var(--sb-border) !important;">
+                <div class="small text-muted mb-1">Đang lưu trú</div>
+                <div class="h3 fw-bold text-success mb-0" th:text="${staying.size()}">0</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card p-3 border-0 shadow-sm" style="border: 1px solid var(--sb-border) !important;">
+                <div class="small text-muted mb-1">Chờ xác nhận cọc</div>
+                <div class="h3 fw-bold text-warning mb-0" th:text="${awaiting.size()}">0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sections -->
+    <section class="card mb-4 border-0 shadow-sm" style="border: 1px solid var(--sb-border) !important;">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="fw-bold text-dark">1. Nhận phòng hôm nay</span>
+            <span class="badge-soft badge-soft-primary" th:text="${checkIns.size()} + ' lượt'"></span>
+        </div>
+        <div th:replace="~{::bookingTable(${checkIns})}"></div>
+    </section>
+
+    <section class="card mb-4 border-0 shadow-sm" style="border: 1px solid var(--sb-border) !important;">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="fw-bold text-dark">2. Trả phòng hôm nay</span>
+            <span class="badge-soft badge-soft-secondary" th:text="${checkOuts.size()} + ' lượt'"></span>
+        </div>
+        <div th:replace="~{::bookingTable(${checkOuts})}"></div>
+    </section>
+
+    <section class="card mb-4 border-0 shadow-sm" style="border: 1px solid var(--sb-border) !important;">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="fw-bold text-dark">3. Khách đang ở</span>
+            <span class="badge-soft badge-soft-success" th:text="${staying.size()} + ' phòng'"></span>
+        </div>
+        <div th:replace="~{::bookingTable(${staying})}"></div>
+    </section>
+
+    <section class="card mb-4 border-0 shadow-sm" style="border: 1px solid var(--sb-border) !important;">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="fw-bold text-dark">4. Chờ xác nhận cọc (Khách đã chuyển khoản)</span>
+            <span class="badge-soft badge-soft-orange" th:text="${awaiting.size()} + ' đặt phòng'"></span>
+        </div>
+        <div th:replace="~{::bookingTable(${awaiting})}"></div>
+    </section>
+
+    <section class="card mb-4 border-0 shadow-sm" style="border: 1px solid var(--sb-border) !important;">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="fw-bold text-dark">5. Chờ cọc sắp hết hạn (Đang giữ chỗ)</span>
+            <span class="badge-soft badge-soft-warning" th:text="${pending.size()} + ' đặt phòng'"></span>
+        </div>
+        <div th:replace="~{::bookingTable(${pending})}"></div>
+    </section>
 </main>
 
 <div th:fragment="bookingTable(bookings)">
-  <div class="table-responsive">
-    <table class="table table-hover align-middle mb-0">
-      <thead><tr><th>Mã</th><th>Khách</th><th>Số điện thoại</th><th>Phòng</th><th>Ngày ở</th><th>Trạng thái</th><th></th></tr></thead>
-      <tbody>
-        <tr th:each="booking : ${bookings}"
-            th:classappend="${overdueCodes != null and overdueCodes.contains(booking.code)} ? 'table-warning' : ''">
-          <td><strong th:text="${booking.code}"></strong></td>
-          <td th:text="${booking.guestName}"></td>
-          <td th:text="${booking.guestPhone}"></td>
-          <td th:text="${booking.room.roomNumber}"></td>
-          <td th:text="${#temporals.format(booking.checkInDate, 'dd/MM') + ' - ' + #temporals.format(booking.checkOutDate, 'dd/MM')}"></td>
-          <td><span th:replace="~{fragments/status-badge :: statusBadge(${booking.status})}"></span></td>
-          <td class="text-end">
-            <a class="btn btn-sm btn-primary" th:href="@{/staff/bookings/{code}(code=${booking.code})}">Mở chi tiết</a>
-          </td>
-        </tr>
-        <tr th:if="${#lists.isEmpty(bookings)}">
-          <td colspan="7" class="text-center text-muted py-4">Không có việc cần xử lý trong nhóm này.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Mã ĐP</th>
+                    <th>Khách hàng</th>
+                    <th>Số điện thoại</th>
+                    <th>Số phòng</th>
+                    <th>Thời gian</th>
+                    <th>Trạng thái</th>
+                    <th class="text-end">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="booking : ${bookings}"
+                    th:classappend="${overdueCodes != null and overdueCodes.contains(booking.code)} ? 'table-warning' : ''">
+                    <td><strong class="font-monospace text-primary" th:text="${booking.code}"></strong></td>
+                    <td class="fw-medium text-dark" th:text="${booking.guestName}"></td>
+                    <td class="small text-muted" th:text="${booking.guestPhone}"></td>
+                    <td>
+                        <span class="badge bg-light text-dark border px-2 py-1" th:text="'Phòng ' + ${booking.room.roomNumber}"></span>
+                    </td>
+                    <td class="small text-muted" th:text="${#temporals.format(booking.checkInDate, 'dd/MM')} + ' - ' + ${#temporals.format(booking.checkOutDate, 'dd/MM')}"></td>
+                    <td><span th:replace="~{fragments/status-badge :: statusBadge(${booking.status})}"></span></td>
+                    <td class="text-end">
+                        <a class="btn btn-sm btn-outline-primary" th:href="@{/staff/bookings/{code}(code=${booking.code})}">Mở chi tiết</a>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(bookings)}">
+                    <td colspan="7" class="text-center text-muted py-4 small">
+                        <em>Không có công việc cần xử lý trong mục này.</em>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
+
 <footer th:replace="~{layout/main :: footer}"></footer>
 </body>
 </html>

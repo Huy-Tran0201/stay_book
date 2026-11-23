@@ -3,57 +3,125 @@
 <head th:replace="~{layout/main :: head(${roomType.name})}"></head>
 <body>
 <nav th:replace="~{layout/main :: header}"></nav>
+
 <main class="container py-4">
-    <h1 th:text="${roomType.name}">Loại phòng</h1>
-    <p class="text-secondary" th:text="${roomType.description}"></p>
-    <div class="row g-2 mb-4" th:if="${!#lists.isEmpty(images)}">
-        <div class="col-6 col-md-3" th:each="image : ${images}">
-            <img class="img-fluid rounded" th:src="@{'/uploads/' + image.fileName}"
-                 th:alt="${roomType.name}">
+    <div class="row g-4">
+        <!-- Main Content (Left) -->
+        <div class="col-lg-8">
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb small">
+                    <li class="breadcrumb-item"><a th:href="@{/}" class="text-decoration-none text-muted">Trang chủ</a></li>
+                    <li class="breadcrumb-item"><a th:href="@{/rooms(checkIn=${checkIn},checkOut=${checkOut},guests=${guests})}" class="text-decoration-none text-muted">Danh sách phòng</a></li>
+                    <li class="breadcrumb-item active" aria-current="page" th:text="${roomType.name}"></li>
+                </ol>
+            </nav>
+
+            <h1 class="h2 fw-bold text-dark mb-2" th:text="${roomType.name}">Loại phòng</h1>
+            <p class="text-muted mb-4" th:text="${roomType.description}"></p>
+
+            <!-- Image Gallery -->
+            <div class="mb-4" th:if="${!#lists.isEmpty(images)}">
+                <div class="row g-2">
+                    <div class="col-12" th:if="${images.size() > 0}">
+                        <img class="img-fluid rounded-3 w-100 shadow-sm" style="max-height: 400px; object-fit: cover;"
+                             th:src="@{'/uploads/' + ${images[0].fileName}}" th:alt="${roomType.name}">
+                    </div>
+                    <div class="col-3" th:each="image, stat : ${images}" th:if="${stat.index > 0}">
+                        <img class="img-fluid rounded-2 w-100 shadow-sm" style="height: 100px; object-fit: cover;"
+                             th:src="@{'/uploads/' + ${image.fileName}}" th:alt="${roomType.name}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Specs Card -->
+            <div class="card p-3 p-md-4 mb-4 border-0 shadow-sm" style="border: 1px solid var(--sb-border) !important;">
+                <h2 class="h5 fw-bold mb-3">Thông số phòng</h2>
+                <div class="row g-3 text-center">
+                    <div class="col-4">
+                        <div class="p-3 bg-light rounded-3">
+                            <span class="small text-muted d-block mb-1">Diện tích</span>
+                            <strong class="h6 mb-0 text-dark" th:text="${roomType.areaM2} + ' m²'"></strong>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-3 bg-light rounded-3">
+                            <span class="small text-muted d-block mb-1">Loại giường</span>
+                            <strong class="h6 mb-0 text-dark" th:text="${roomType.bedType}"></strong>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-3 bg-light rounded-3">
+                            <span class="small text-muted d-block mb-1">Sức chứa tối đa</span>
+                            <strong class="h6 mb-0 text-dark" th:text="${roomType.maxGuests} + ' khách'"></strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Amenities -->
+            <div class="card p-3 p-md-4 mb-4 border-0 shadow-sm" style="border: 1px solid var(--sb-border) !important;">
+                <h2 class="h5 fw-bold mb-3">Tiện nghi có sẵn</h2>
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="badge-soft badge-soft-secondary px-3 py-2" th:each="amenity : ${roomType.amenities}"
+                          th:text="${amenity.name}"></span>
+                </div>
+            </div>
+
+            <!-- Hotel & Check-in Policies -->
+            <div class="card p-3 p-md-4 mb-4 border-0 shadow-sm" style="border: 1px solid var(--sb-border) !important;">
+                <h2 class="h5 fw-bold mb-3">Chính sách & Quy định</h2>
+                <ul class="list-unstyled mb-0 small text-secondary">
+                    <li class="mb-2">
+                        🕒 Giờ nhận phòng: từ <strong class="text-dark" th:text="${settings['checkin.time'] ?: '14:00'}"></strong>
+                        • Giờ trả phòng: trước <strong class="text-dark" th:text="${settings['checkout.time'] ?: '12:00'}"></strong>
+                    </li>
+                    <li class="mb-2" th:if="${settings['deposit.percent']}">
+                        💳 Tỷ lệ cọc: <strong class="text-dark"><span th:text="${settings['deposit.percent']}"></span>%</strong> tổng tiền phòng.
+                    </li>
+                    <li class="mb-2" th:if="${settings['refund.hours']}">
+                        🔄 Chính sách hoàn cọc: <span th:text="${refundPolicy}"></span>
+                    </li>
+                    <li th:if="${settings['cancel.policy']}" th:text="${settings['cancel.policy']}"></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Sticky Sidebar (Right) -->
+        <div class="col-lg-4">
+            <div class="card p-4 border-0 shadow-sm sticky-top" style="top: 80px; border: 1px solid var(--sb-border) !important;">
+                <h2 class="h5 fw-bold mb-3" th:text="#{room-type.pricing.title}">Bảng giá tham khảo</h2>
+                
+                <div class="p-3 bg-light rounded-3 mb-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small" th:text="#{room-type.pricing.weekday}">Ngày thường:</span>
+                        <strong class="text-dark" th:text="${#numbers.formatInteger(pricing.weekdayPrice(), 3, 'POINT')} + ' ₫ / đêm'"></strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted small" th:text="#{room-type.pricing.weekend}">Cuối tuần (T6, T7):</span>
+                        <strong class="text-primary" th:text="${#numbers.formatInteger(pricing.weekendPrice(), 3, 'POINT')} + ' ₫ / đêm'"></strong>
+                    </div>
+                </div>
+
+                <div class="mb-3 small text-muted">
+                    <span class="d-block mb-1">Thời gian chọn:</span>
+                    <strong class="text-dark" th:text="${checkIn} + ' → ' + ${checkOut}"></strong>
+                    <span class="d-block mt-1" th:text="${guests} + ' khách'"></span>
+                </div>
+
+                <a class="btn btn-primary w-100 py-2 fw-semibold mb-2"
+                   th:href="@{/booking/new(checkIn=${checkIn},checkOut=${checkOut},guests=${guests},roomTypeId=${roomType.id})}">
+                    Tiến hành đặt phòng
+                </a>
+                
+                <a class="btn btn-outline-secondary w-100 btn-sm"
+                   th:href="@{/rooms(checkIn=${checkIn},checkOut=${checkOut},guests=${guests},minPrice=${minPrice},maxPrice=${maxPrice},minCapacity=${minCapacity},amenity=${selectedAmenities},sort=${sort})}">
+                    Quay lại danh sách
+                </a>
+            </div>
         </div>
     </div>
-    <dl class="row">
-        <dt class="col-5">Diện tích</dt><dd class="col-7" th:text="${roomType.areaM2} + ' m²'"></dd>
-        <dt class="col-5">Giường</dt><dd class="col-7" th:text="${roomType.bedType}"></dd>
-        <dt class="col-5">Sức chứa</dt><dd class="col-7" th:text="${roomType.maxGuests} + ' khách'"></dd>
-    </dl>
-    <h2 class="h5 mt-4">Tiện nghi</h2>
-    <ul class="list-inline">
-        <li class="list-inline-item badge text-bg-light border" th:each="amenity : ${roomType.amenities}"
-            th:text="${amenity.name}"></li>
-    </ul>
-    <section class="card mt-4">
-        <div class="card-body">
-            <h2 class="h5" th:text="#{room-type.pricing.title}">Bảng giá tham khảo</h2>
-            <dl class="row mb-0">
-                <dt class="col-sm-7" th:text="#{room-type.pricing.weekday}">Giá ngày thường</dt>
-                <dd class="col-sm-5" th:text="${#numbers.formatInteger(pricing.weekdayPrice(), 3, 'POINT')} + ' ₫'"></dd>
-                <dt class="col-sm-7" th:text="#{room-type.pricing.weekend}">Giá đêm cuối tuần (Thứ 6, Thứ 7)</dt>
-                <dd class="col-sm-5" th:text="${#numbers.formatInteger(pricing.weekendPrice(), 3, 'POINT')} + ' ₫'"></dd>
-            </dl>
-        </div>
-    </section>
-    <p class="mt-3 text-secondary">
-        Nhận phòng từ <strong th:text="${settings['checkin.time'] ?: '14:00'}"></strong>,
-        trả phòng trước <strong th:text="${settings['checkout.time'] ?: '12:00'}"></strong>.
-        Phụ thu cuối tuần đã được tính trong giá.
-    </p>
-    <p class="small text-secondary" th:if="${settings['deposit.percent']}">
-        Chính sách cọc: <span th:text="${settings['deposit.percent']}"></span>% tổng tiền phòng.
-        <span th:if="${settings['refund.hours']}"
-              th:text="${refundPolicy}"></span>
-    </p>
-    <p class="small text-secondary" th:if="${settings['cancel.policy']}"
-       th:text="${settings['cancel.policy']}"></p>
-    <a class="btn btn-outline-secondary me-2"
-       th:href="@{/rooms(checkIn=${checkIn},checkOut=${checkOut},guests=${guests},minPrice=${minPrice},maxPrice=${maxPrice},minCapacity=${minCapacity},amenity=${selectedAmenities},sort=${sort})}">
-        Quay lại kết quả
-    </a>
-    <a class="btn btn-primary"
-       th:href="@{/booking/new(checkIn=${checkIn},checkOut=${checkOut},guests=${guests},roomTypeId=${roomType.id})}">
-        Đặt phòng
-    </a>
 </main>
+
 <footer th:replace="~{layout/main :: footer}"></footer>
 </body>
 </html>

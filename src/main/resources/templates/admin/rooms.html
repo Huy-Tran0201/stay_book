@@ -1,9 +1,55 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{layout/main :: head('Quản lý phòng')}"></head>
-<body><nav th:replace="~{layout/main :: header}"></nav><main class="container py-4">
-<div th:replace="~{layout/main :: flash}"></div><div class="d-flex justify-content-between align-items-center mb-3"><h1>Phòng</h1><a class="btn btn-primary" th:href="@{/admin/rooms/new}">Thêm phòng</a></div>
-<table class="table table-bordered"><thead><tr><th>Loại phòng</th><th>Số phòng</th><th>Tầng</th><th>Trạng thái</th><th></th></tr></thead><tbody>
-<tr th:each="room : ${rooms}"><td th:text="${room.roomType.name}"></td><td th:text="${room.roomNumber}"></td><td th:text="${room.floor}"></td><td th:text="${room.status}"></td><td><a class="btn btn-sm btn-outline-primary" th:href="@{/admin/rooms/{id}/edit(id=${room.id})}">Sửa</a></td></tr>
-<tr th:if="${#lists.isEmpty(rooms)}"><td colspan="5">Chưa có phòng. Hãy thêm phòng theo từng loại phòng.</td></tr></tbody></table>
-</main><footer th:replace="~{layout/main :: footer}"></footer></body></html>
+<body>
+<nav th:replace="~{layout/main :: header}"></nav>
+
+<main class="container py-4">
+    <div th:replace="~{layout/main :: flash}"></div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1 text-dark">Quản lý phòng</h1>
+            <p class="text-muted small mb-0">Cấu hình các phòng cụ thể, phân bổ tầng và trạng thái sẵn sàng</p>
+        </div>
+        <a class="btn btn-primary btn-sm px-3 shadow-sm" th:href="@{/admin/rooms/new}">+ Thêm phòng mới</a>
+    </div>
+
+    <div class="card border-0 shadow-sm" style="border: 1px solid var(--sb-border) !important;">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Loại phòng</th>
+                        <th>Số phòng</th>
+                        <th>Tầng</th>
+                        <th>Trạng thái</th>
+                        <th class="text-end">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="room : ${rooms}">
+                        <td class="fw-medium text-dark" th:text="${room.roomType.name}"></td>
+                        <td><span class="badge bg-light text-dark border px-2 py-1 font-monospace" th:text="'Phòng ' + ${room.roomNumber}"></span></td>
+                        <td class="text-secondary" th:text="'Tầng ' + ${room.floor}"></td>
+                        <td>
+                            <span th:if="${room.status.name() == 'ACTIVE'}" class="badge-soft badge-soft-success">Hoạt động</span>
+                            <span th:if="${room.status.name() == 'MAINTENANCE'}" class="badge-soft badge-soft-warning">Bảo trì</span>
+                            <span th:if="${room.status.name() == 'INACTIVE'}" class="badge-soft badge-soft-secondary">Ngừng HĐ</span>
+                        </td>
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-outline-primary" th:href="@{/admin/rooms/{id}/edit(id=${room.id})}">Sửa phòng</a>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(rooms)}">
+                        <td colspan="5" class="text-center text-muted py-5">Chưa có phòng nào. Hãy thêm phòng theo từng loại phòng.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<footer th:replace="~{layout/main :: footer}"></footer>
+</body>
+</html>

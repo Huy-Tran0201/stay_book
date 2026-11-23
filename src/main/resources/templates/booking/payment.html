@@ -1,34 +1,138 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><title>Chuyển cọc</title></head>
-<body><main class="container">
-  <h1>Chuyển cọc</h1>
-  <p>Chọn phòng → Thông tin → <strong>Chuyển cọc</strong> → Hoàn tất</p>
-  <p>Mã đặt phòng: <strong th:text="${booking.code}"></strong></p>
-  <p>Số tiền cọc: <strong th:text="${booking.depositAmount + ' ₫'}"></strong></p>
-  <p>Tài khoản: <span th:text="${bank.account}"></span> - <span th:text="${bank.holder}"></span></p>
-  <p>Nội dung chuyển khoản: <strong th:text="${booking.code}"></strong></p>
-  <p>Hạn giữ chỗ: <strong th:text="${booking.holdExpiresAt}"></strong></p>
-  <p id="hold-countdown" th:attr="data-expiry=${booking.holdExpiresAt}"></p>
-  <img th:if="${qrUrl}" th:src="${qrUrl}" alt="Mã QR chuyển khoản" width="240">
-  <p th:if="${param.submitted}">Đã ghi nhận thông báo chuyển khoản. Lễ tân sẽ xác nhận.</p>
-  <p th:if="${param.error}" class="alert alert-danger">
-    Không thể ghi nhận thông báo chuyển khoản. Vui lòng kiểm tra bạn đang đăng nhập đúng tài khoản đã đặt phòng và thời gian giữ chỗ chưa hết.
-  </p>
-  <form th:if="${booking.status.name() == 'PENDING_DEPOSIT'}"
-        th:action="@{/booking/{code}/paid-notice(code=${booking.code})}" method="post">
-    <button type="submit">Tôi đã chuyển khoản</button>
-  </form>
+<head th:replace="~{layout/main :: head('Chuyển tiền cọc')}"></head>
+<body>
+<nav th:replace="~{layout/main :: header}"></nav>
+
+<main class="container py-4">
+    <!-- Step Wizard -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-12 col-md-8">
+            <ul class="sb-steps">
+                <li class="sb-step-item completed">
+                    <div class="sb-step-circle">✓</div>
+                    <span class="sb-step-label">Chọn phòng</span>
+                </li>
+                <li class="sb-step-item completed">
+                    <div class="sb-step-circle">✓</div>
+                    <span class="sb-step-label">Thông tin</span>
+                </li>
+                <li class="sb-step-item active">
+                    <div class="sb-step-circle">3</div>
+                    <span class="sb-step-label">Chuyển cọc</span>
+                </li>
+                <li class="sb-step-item">
+                    <div class="sb-step-circle">4</div>
+                    <span class="sb-step-label">Hoàn tất</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Alert Notices -->
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-9">
+            <div th:if="${param.submitted}" class="alert alert-success border-0 shadow-sm mb-4">
+                <div class="fw-semibold">✓ Đã ghi nhận thông báo chuyển khoản thành công!</div>
+                <p class="small mb-0 mt-1">Lễ tân sẽ đối chiếu khoản tiền cọc và xác nhận đặt phòng của bạn trong thời gian sớm nhất.</p>
+            </div>
+            <div th:if="${param.error}" class="alert alert-danger border-0 shadow-sm mb-4">
+                Không thể ghi nhận thông báo chuyển khoản. Vui lòng kiểm tra bạn đang đăng nhập đúng tài khoản đã đặt phòng và thời gian giữ chỗ chưa hết.
+            </div>
+
+            <!-- Countdown Timer Banner -->
+            <div class="card p-3 mb-4 border-0 shadow-sm bg-light" style="border: 1px solid var(--sb-border) !important;">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge-soft badge-soft-warning px-3 py-2 fw-semibold">
+                            ⏱️ <span id="hold-countdown" th:attr="data-expiry=${booking.holdExpiresAt}">Đang tính thời gian...</span>
+                        </span>
+                    </div>
+                    <div class="small text-muted">
+                        Mã đặt phòng: <strong class="text-dark" th:text="${booking.code}"></strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Card -->
+            <div class="card p-4 p-md-5 border-0 shadow-sm mb-4" style="border: 1px solid var(--sb-border) !important;">
+                <div class="row g-4 align-items-center">
+                    <!-- QR Code (Left) -->
+                    <div class="col-md-5 text-center">
+                        <div class="p-3 bg-white rounded-3 border d-inline-block shadow-sm">
+                            <img th:if="${qrUrl}" th:src="${qrUrl}" alt="Mã QR chuyển khoản VietQR" class="img-fluid rounded" style="max-width: 230px;">
+                            <div th:unless="${qrUrl}" class="p-4 text-muted small">
+                                Quét mã qua ứng dụng ngân hàng
+                            </div>
+                            <div class="small text-muted mt-2 fw-medium">Quét mã bằng app ngân hàng</div>
+                        </div>
+                    </div>
+
+                    <!-- Banking Details (Right) -->
+                    <div class="col-md-7">
+                        <h2 class="h5 fw-bold text-dark mb-3">Thông tin chuyển cọc</h2>
+
+                        <div class="p-3 bg-light rounded-3 mb-3">
+                            <span class="small text-muted d-block">Số tiền cọc cần chuyển:</span>
+                            <strong class="h4 fw-bold text-primary mb-0 d-block mt-1"
+                                    th:text="${#numbers.formatInteger(booking.depositAmount, 1, 'POINT')} + ' ₫'"></strong>
+                        </div>
+
+                        <dl class="row mb-0 small">
+                            <dt class="col-sm-4 text-muted">Ngân hàng:</dt>
+                            <dd class="col-sm-8 fw-semibold text-dark" th:text="${bank.name}"></dd>
+
+                            <dt class="col-sm-4 text-muted">Số tài khoản:</dt>
+                            <dd class="col-sm-8 fw-bold text-dark font-monospace" th:text="${bank.account}"></dd>
+
+                            <dt class="col-sm-4 text-muted">Chủ tài khoản:</dt>
+                            <dd class="col-sm-8 fw-semibold text-dark" th:text="${bank.holder}"></dd>
+
+                            <dt class="col-sm-4 text-muted">Nội dung CK:</dt>
+                            <dd class="col-sm-8">
+                                <span class="badge bg-secondary font-monospace px-2 py-1" th:text="${booking.code}"></span>
+                                <small class="text-muted d-block mt-1"><em>*Vui lòng giữ nguyên nội dung chuyển khoản để tự động khớp lệnh</em></small>
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <div class="mt-4 pt-4 border-top text-center" th:if="${booking.status.name() == 'PENDING_DEPOSIT'}">
+                    <form th:action="@{/booking/{code}/paid-notice(code=${booking.code})}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <button class="btn btn-primary btn-lg px-5 py-2 fw-semibold shadow-sm" type="submit">
+                            ✓ Tôi đã chuyển khoản
+                        </button>
+                    </form>
+                    <p class="small text-muted mt-2 mb-0">Bấm nút trên sau khi bạn đã thực hiện chuyển tiền thành công qua ngân hàng.</p>
+                </div>
+
+                <div class="mt-4 pt-3 border-top text-center" th:unless="${booking.status.name() == 'PENDING_DEPOSIT'}">
+                    <div class="d-flex justify-content-center align-items-center gap-2">
+                        <span class="text-muted small">Trạng thái hiện tại:</span>
+                        <span th:replace="~{fragments/status-badge :: statusBadge(${booking.status})}"></span>
+                    </div>
+                    <div class="mt-3">
+                        <a th:href="@{/my-bookings/{code}(code=${booking.code})}" class="btn btn-outline-primary btn-sm">Xem chi tiết đặt phòng</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </main>
+
+<footer th:replace="~{layout/main :: footer}"></footer>
 <script>
   const timer = document.getElementById('hold-countdown');
   if (timer && timer.dataset.expiry) {
     const expiry = new Date(timer.dataset.expiry.replace(' ', 'T'));
     const tick = () => {
       const seconds = Math.max(0, Math.floor((expiry - new Date()) / 1000));
-      timer.textContent = seconds ? 'Thời gian giữ chỗ còn: ' + Math.floor(seconds / 60) + ' phút ' + seconds % 60 + ' giây' : 'Đã hết thời gian giữ chỗ';
+      timer.textContent = seconds ? 'Thời gian giữ chỗ còn: ' + Math.floor(seconds / 60) + ' phút ' + String(seconds % 60).padStart(2, '0') + ' giây' : 'Đã hết thời gian giữ chỗ';
     };
     tick(); setInterval(tick, 1000);
   }
 </script>
-</body></html>
+</body>
+</html>

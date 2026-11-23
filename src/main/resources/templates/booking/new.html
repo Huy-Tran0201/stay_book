@@ -1,42 +1,149 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><title>Thông tin đặt phòng</title></head>
+<head th:replace="~{layout/main :: head('Thông tin đặt phòng')}"></head>
 <body>
-<main class="container">
-  <h1>Thông tin đặt phòng</h1>
-  <p th:if="${message}" th:text="${message}" class="alert alert-danger"></p>
-  <p th:if="${message}">
-    <a href="/my-bookings">Quản lý các đặt phòng đang chờ để thanh toán hoặc hủy</a>
-  </p>
-  <h2 th:text="${roomType.name}"></h2>
-  <p><span th:text="${form.checkInDate}"></span> - <span th:text="${form.checkOutDate}"></span>,
-     <span th:text="${form.guestCount}"></span> khách</p>
-  <div th:if="${nearCheckIn}" class="alert alert-warning">Đặt phòng này sẽ không được hoàn cọc nếu hủy.</div>
-  <form id="booking-form" th:action="@{/booking}" th:object="${form}" method="post">
-    <input type="hidden" th:field="*{roomTypeId}"><input type="hidden" th:field="*{checkInDate}">
-    <input type="hidden" th:field="*{checkOutDate}"><input type="hidden" th:field="*{guestCount}">
-    <label>Họ tên <input th:field="*{guestName}" required></label>
-    <label>Số điện thoại <input th:field="*{guestPhone}" required></label>
-    <label>Email <input th:field="*{guestEmail}" type="email"></label>
-    <label>Ghi chú <textarea th:field="*{note}"></textarea></label>
-    <label th:if="${nearCheckIn}"><input type="checkbox" th:field="*{nearCheckInConfirmed}" required>
-      Tôi đã hiểu chính sách không hoàn cọc</label>
-    <div th:if="${pricing != null}">
-      <h3>Bảng giá từng đêm</h3>
-      <ul><li th:each="night : ${pricing.nights}" th:text="${night.date + ' - ' + night.nightPrice + ' ₫'}"></li></ul>
-      <p>Tổng tiền: <strong th:text="${pricing.totalAmount + ' ₫'}"></strong></p>
-      <p>Tiền cọc: <strong th:text="${pricing.depositAmount + ' ₫'}"></strong></p>
-      <p>Chính sách hủy: hoàn cọc nếu hủy trước 48 giờ so với 14:00 ngày nhận.</p>
+<nav th:replace="~{layout/main :: header}"></nav>
+
+<main class="container py-4">
+    <!-- Step Wizard -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-12 col-md-8">
+            <ul class="sb-steps">
+                <li class="sb-step-item completed">
+                    <div class="sb-step-circle">✓</div>
+                    <span class="sb-step-label">Chọn phòng</span>
+                </li>
+                <li class="sb-step-item active">
+                    <div class="sb-step-circle">2</div>
+                    <span class="sb-step-label">Thông tin</span>
+                </li>
+                <li class="sb-step-item">
+                    <div class="sb-step-circle">3</div>
+                    <span class="sb-step-label">Chuyển cọc</span>
+                </li>
+                <li class="sb-step-item">
+                    <div class="sb-step-circle">4</div>
+                    <span class="sb-step-label">Hoàn tất</span>
+                </li>
+            </ul>
+        </div>
     </div>
-    <button id="booking-submit" type="submit">Đặt phòng</button>
-  </form>
+
+    <div th:if="${message}" class="alert alert-danger border-0 shadow-sm mb-4">
+        <div th:text="${message}"></div>
+        <div class="mt-2">
+            <a href="/my-bookings" class="alert-link">Quản lý các đặt phòng đang chờ để thanh toán hoặc hủy</a>
+        </div>
+    </div>
+
+    <form id="booking-form" th:action="@{/booking}" th:object="${form}" method="post">
+        <input type="hidden" th:field="*{roomTypeId}">
+        <input type="hidden" th:field="*{checkInDate}">
+        <input type="hidden" th:field="*{checkOutDate}">
+        <input type="hidden" th:field="*{guestCount}">
+
+        <div class="row g-4">
+            <!-- Left Column: Guest Information -->
+            <div class="col-lg-7">
+                <div class="card p-4 border-0 shadow-sm" style="border: 1px solid var(--sb-border) !important;">
+                    <h2 class="h5 fw-bold mb-3 text-dark">Thông tin người đặt</h2>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="guestName">Họ và tên khách</label>
+                        <input class="form-control" id="guestName" th:field="*{guestName}" required placeholder="Nguyễn Văn A">
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="guestPhone">Số điện thoại</label>
+                            <input class="form-control" id="guestPhone" th:field="*{guestPhone}" required placeholder="0901234567">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="guestEmail">Địa chỉ Email</label>
+                            <input class="form-control" id="guestEmail" th:field="*{guestEmail}" type="email" placeholder="email@example.com">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="note">Yêu cầu đặc biệt / Ghi chú</label>
+                        <textarea class="form-control" id="note" th:field="*{note}" rows="3" placeholder="Ví dụ: Giờ check-in dự kiến, phòng tầng cao..."></textarea>
+                    </div>
+
+                    <!-- Warning for near check-in -->
+                    <div th:if="${nearCheckIn}" class="alert alert-warning border-0 p-3 mb-3">
+                        <div class="fw-semibold mb-1">Lưu ý về chính sách hủy:</div>
+                        <p class="small mb-2">Do thời điểm đặt cách giờ nhận phòng dưới 48 giờ, đặt phòng này sẽ không được hoàn cọc nếu hủy.</p>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="nearCheckInConfirmed" th:field="*{nearCheckInConfirmed}" required>
+                            <label class="form-check-label small fw-medium text-dark" for="nearCheckInConfirmed">
+                                Tôi đã hiểu và đồng ý với chính sách không hoàn cọc
+                            </label>
+                        </div>
+                    </div>
+
+                    <button id="booking-submit" class="btn btn-primary btn-lg w-100 mt-2 py-2 fw-semibold" type="submit">
+                        Tiếp tục đến bước chuyển cọc
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Column: Booking Summary & Pricing -->
+            <div class="col-lg-5">
+                <div class="card p-4 border-0 shadow-sm sticky-top" style="top: 80px; border: 1px solid var(--sb-border) !important;">
+                    <h2 class="h5 fw-bold mb-3 text-dark">Tóm tắt đặt phòng</h2>
+                    
+                    <div class="p-3 bg-light rounded-3 mb-3">
+                        <div class="fw-bold text-dark h6 mb-1" th:text="${roomType.name}"></div>
+                        <div class="small text-muted mb-2">
+                            <span>Từ: <strong class="text-dark" th:text="${form.checkInDate}"></strong></span> • 
+                            <span>Đến: <strong class="text-dark" th:text="${form.checkOutDate}"></strong></span>
+                        </div>
+                        <div class="small text-muted">
+                            Số khách: <strong class="text-dark" th:text="${form.guestCount} + ' người'"></strong>
+                        </div>
+                    </div>
+
+                    <div th:if="${pricing != null}">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="small fw-semibold text-secondary">Chi tiết các đêm</span>
+                            <span class="small text-muted" th:text="${pricing.nights.size()} + ' đêm'"></span>
+                        </div>
+                        <ul class="list-group list-group-flush mb-3 small">
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 bg-transparent"
+                                th:each="night : ${pricing.nights}">
+                                <span class="text-secondary" th:text="${night.date}"></span>
+                                <span class="fw-medium text-dark" th:text="${#numbers.formatInteger(night.nightPrice, 1, 'POINT')} + ' ₫'"></span>
+                            </li>
+                        </ul>
+
+                        <div class="pt-2 border-top">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-secondary">Tổng tiền phòng:</span>
+                                <strong class="h6 mb-0 text-dark" th:text="${#numbers.formatInteger(pricing.totalAmount, 1, 'POINT')} + ' ₫'"></strong>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="text-secondary fw-semibold">Số tiền cần cọc:</span>
+                                <strong class="h5 mb-0 text-primary" th:text="${#numbers.formatInteger(pricing.depositAmount, 1, 'POINT')} + ' ₫'"></strong>
+                            </div>
+                        </div>
+
+                        <div class="p-2 bg-light rounded small text-muted">
+                            🛡️ <em>Chính sách: Hoàn cọc 100% nếu hủy trước 48 giờ so với 14:00 ngày nhận.</em>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
 </main>
+
+<footer th:replace="~{layout/main :: footer}"></footer>
 <script>
   const bookingForm = document.getElementById('booking-form');
   const bookingSubmit = document.getElementById('booking-submit');
   bookingForm?.addEventListener('submit', () => {
     bookingSubmit.disabled = true;
-    bookingSubmit.textContent = 'Đang xử lý...';
+    bookingSubmit.textContent = 'Đang xử lý đặt phòng...';
   });
 </script>
 </body>

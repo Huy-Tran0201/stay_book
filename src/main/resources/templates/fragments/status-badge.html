@@ -1,11 +1,11 @@
 <span th:fragment="statusBadge(status)"
       th:switch="${status.name()}">
-    <span th:case="'PENDING_DEPOSIT'" class="badge text-bg-warning">Chờ cọc</span>
-    <span th:case="'AWAITING_CONFIRMATION'" class="badge" style="background:#fd7e14">Chờ xác nhận cọc</span>
-    <span th:case="'CONFIRMED'" class="badge text-bg-primary">Đã xác nhận</span>
-    <span th:case="'CHECKED_IN'" class="badge text-bg-success">Đang ở</span>
-    <span th:case="'CHECKED_OUT'" class="badge text-bg-secondary">Đã trả phòng</span>
-    <span th:case="'CANCELLED'" class="badge text-bg-danger">Đã hủy</span>
-    <span th:case="'EXPIRED'" class="badge text-bg-secondary">Hết hạn</span>
-    <span th:case="'NO_SHOW'" class="badge text-bg-danger">Không đến</span>
+    <span th:case="'PENDING_DEPOSIT'" class="badge-soft badge-soft-warning">Chờ cọc</span>
+    <span th:case="'AWAITING_CONFIRMATION'" class="badge-soft badge-soft-orange">Chờ xác nhận cọc</span>
+    <span th:case="'CONFIRMED'" class="badge-soft badge-soft-primary">Đã xác nhận</span>
+    <span th:case="'CHECKED_IN'" class="badge-soft badge-soft-success">Đang ở</span>
+    <span th:case="'CHECKED_OUT'" class="badge-soft badge-soft-secondary">Đã trả phòng</span>
+    <span th:case="'CANCELLED'" class="badge-soft badge-soft-danger">Đã hủy</span>
+    <span th:case="'EXPIRED'" class="badge-soft badge-soft-secondary">Hết hạn</span>
+    <span th:case="'NO_SHOW'" class="badge-soft badge-soft-danger">Không đến</span>
 </span>

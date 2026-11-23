@@ -3,54 +3,106 @@
 <head th:replace="~{layout/main :: head('Danh sách đặt phòng')}"></head>
 <body>
 <nav th:replace="~{layout/main :: header}"></nav>
-<main class="container py-4">
-  <h1 class="h3 mb-3">Danh sách đặt phòng</h1>
-  <form class="row g-2 mb-3" method="get" th:action="@{/staff/bookings}">
-    <div class="col-md-2"><input class="form-control" name="search" th:value="${search}" placeholder="Mã, tên hoặc SĐT"></div>
-    <div class="col-md-2">
-      <select class="form-select" name="status"><option value="">Tất cả trạng thái</option>
-        <option th:each="item : ${statuses}" th:value="${item}" th:text="${item}" th:selected="${item == selectedStatus}"></option>
-      </select>
-    </div>
-    <div class="col-md-2"><input class="form-control" type="date" name="checkIn" th:value="${checkIn}"></div>
-    <div class="col-md-2"><input class="form-control" type="date" name="checkOut" th:value="${checkOut}"></div>
-    <div class="col-md-2"><select class="form-select" name="roomTypeId"><option value="">Tất cả loại phòng</option>
-      <option th:each="type : ${roomTypes}" th:value="${type.id}" th:text="${type.name}" th:selected="${type.id == roomTypeId}"></option>
-    </select></div>
-    <div class="col-md-2"><button class="btn btn-primary w-100" type="submit">Lọc</button></div>
-  </form>
 
-  <div class="table-responsive">
-    <table class="table table-hover align-middle">
-      <thead><tr><th>Mã</th><th>Khách</th><th>Số điện thoại</th><th>Phòng</th><th>Ngày ở</th><th>Trạng thái</th><th></th></tr></thead>
-      <tbody>
-        <tr th:each="booking : ${result.content}">
-          <td><strong th:text="${booking.code}"></strong></td>
-          <td th:text="${booking.guestName}"></td>
-          <td th:text="${booking.guestPhone}"></td>
-          <td th:text="${booking.room.roomNumber}"></td>
-          <td th:text="${#temporals.format(booking.checkInDate, 'dd/MM')} + ' - ' + ${#temporals.format(booking.checkOutDate, 'dd/MM')}"></td>
-          <td><span th:replace="~{fragments/status-badge :: statusBadge(${booking.status})}"></span></td>
-          <td><a class="btn btn-sm btn-primary" th:href="@{/staff/bookings/{code}(code=${booking.code})}">Mở chi tiết</a></td>
-        </tr>
-        <tr th:if="${result.empty}">
-          <td colspan="7" class="text-center text-muted py-4">Không tìm thấy đặt phòng phù hợp. Hãy đổi bộ lọc hoặc tìm lại.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  <nav th:if="${result.totalPages > 1}">
-    <ul class="pagination">
-      <li class="page-item" th:classappend="${result.first} ? 'disabled'">
-        <a class="page-link" th:href="@{/staff/bookings(page=${result.number - 1},status=${selectedStatus},checkIn=${checkIn},checkOut=${checkOut},roomTypeId=${roomTypeId},search=${search})}">Trước</a>
-      </li>
-      <li class="page-item disabled"><span class="page-link" th:text="${result.number + 1} + '/' + ${result.totalPages}"></span></li>
-      <li class="page-item" th:classappend="${result.last} ? 'disabled'">
-        <a class="page-link" th:href="@{/staff/bookings(page=${result.number + 1},status=${selectedStatus},checkIn=${checkIn},checkOut=${checkOut},roomTypeId=${roomTypeId},search=${search})}">Sau</a>
-      </li>
-    </ul>
-  </nav>
+<main class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+        <div>
+            <h1 class="h3 fw-bold mb-1 text-dark">Tra cứu đặt phòng</h1>
+            <p class="text-muted small mb-0">Quản lý và tìm kiếm tất cả hồ sơ đặt phòng trong hệ thống</p>
+        </div>
+        <a class="btn btn-outline-secondary btn-sm" th:href="@{/staff/today}">← Về bảng việc hôm nay</a>
+    </div>
+
+    <!-- Filter Card -->
+    <div class="card p-3 mb-4 border-0 shadow-sm" style="border: 1px solid var(--sb-border) !important;">
+        <form class="row g-2 align-items-end" method="get" th:action="@{/staff/bookings}">
+            <div class="col-md-3">
+                <label class="form-label small">Từ khóa</label>
+                <input class="form-control" name="search" th:value="${search}" placeholder="Mã BK, tên hoặc SĐT">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Trạng thái</label>
+                <select class="form-select" name="status">
+                    <option value="">Tất cả trạng thái</option>
+                    <option th:each="item : ${statuses}" th:value="${item}" th:text="${item}" th:selected="${item == selectedStatus}"></option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Từ ngày</label>
+                <input class="form-control" type="date" name="checkIn" th:value="${checkIn}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Đến ngày</label>
+                <input class="form-control" type="date" name="checkOut" th:value="${checkOut}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small">Loại phòng</label>
+                <select class="form-select" name="roomTypeId">
+                    <option value="">Tất cả</option>
+                    <option th:each="type : ${roomTypes}" th:value="${type.id}" th:text="${type.name}" th:selected="${type.id == roomTypeId}"></option>
+                </select>
+            </div>
+            <div class="col-md-1">
+                <button class="btn btn-primary w-100" type="submit">Lọc</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Table Card -->
+    <div class="card border-0 shadow-sm mb-4" style="border: 1px solid var(--sb-border) !important;">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Mã ĐP</th>
+                        <th>Khách hàng</th>
+                        <th>Số điện thoại</th>
+                        <th>Số phòng</th>
+                        <th>Khoảng ngày</th>
+                        <th>Trạng thái</th>
+                        <th class="text-end">Chi tiết</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="booking : ${result.content}">
+                        <td><strong class="font-monospace text-primary" th:text="${booking.code}"></strong></td>
+                        <td class="fw-medium text-dark" th:text="${booking.guestName}"></td>
+                        <td class="small text-muted" th:text="${booking.guestPhone}"></td>
+                        <td>
+                            <span class="badge bg-light text-dark border px-2 py-1" th:text="'Phòng ' + ${booking.room.roomNumber}"></span>
+                        </td>
+                        <td class="small text-muted" th:text="${#temporals.format(booking.checkInDate, 'dd/MM/yyyy')} + ' - ' + ${#temporals.format(booking.checkOutDate, 'dd/MM/yyyy')}"></td>
+                        <td><span th:replace="~{fragments/status-badge :: statusBadge(${booking.status})}"></span></td>
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-outline-primary" th:href="@{/staff/bookings/{code}(code=${booking.code})}">Xem</a>
+                        </td>
+                    </tr>
+                    <tr th:if="${result.empty}">
+                        <td colspan="7" class="text-center text-muted py-5">
+                            Không tìm thấy đặt phòng phù hợp. Hãy thử thay đổi tiêu chí bộ lọc.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <nav th:if="${result.totalPages > 1}" class="d-flex justify-content-center">
+        <ul class="pagination pagination-sm">
+            <li class="page-item" th:classappend="${result.first} ? 'disabled'">
+                <a class="page-link" th:href="@{/staff/bookings(page=${result.number - 1},status=${selectedStatus},checkIn=${checkIn},checkOut=${checkOut},roomTypeId=${roomTypeId},search=${search})}">← Trang trước</a>
+            </li>
+            <li class="page-item disabled">
+                <span class="page-link text-dark fw-semibold" th:text="${result.number + 1} + ' / ' + ${result.totalPages}"></span>
+            </li>
+            <li class="page-item" th:classappend="${result.last} ? 'disabled'">
+                <a class="page-link" th:href="@{/staff/bookings(page=${result.number + 1},status=${selectedStatus},checkIn=${checkIn},checkOut=${checkOut},roomTypeId=${roomTypeId},search=${search})}">Trang sau →</a>
+            </li>
+        </ul>
+    </nav>
 </main>
+
 <footer th:replace="~{layout/main :: footer}"></footer>
 </body>
 </html>
