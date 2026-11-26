@@ -114,13 +114,26 @@ public class BookingController {
 
     @GetMapping("/my-bookings")
     public String myBookings(Authentication auth, Model model) {
-        model.addAttribute("bookings", bookings.findByUserIdOrderByCreatedAtDesc(currentUser(auth).getId()));
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
+            return "redirect:/login";
+        }
+        User user = users.findByEmail(auth.getName()).orElse(null);
+        if (user == null) {
+            return "redirect:/login";
+        }
+        model.addAttribute("bookings", bookings.findByUserIdOrderByCreatedAtDesc(user.getId()));
         return "booking/my-bookings";
     }
 
     @GetMapping("/my-bookings/{code}")
     public String bookingDetail(@PathVariable String code, Authentication auth, Model model) {
-        User user = currentUser(auth);
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getName())) {
+            return "redirect:/login";
+        }
+        User user = users.findByEmail(auth.getName()).orElse(null);
+        if (user == null) {
+            return "redirect:/login";
+        }
         Booking booking = bookingService.findOwnedBooking(code, user);
         populateBookingDetail(model, booking, user);
         return "booking/detail";

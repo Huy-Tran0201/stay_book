@@ -53,8 +53,9 @@ class BookingConcurrencyTest {
 
     private BookingForm form(Long typeId) {
         BookingForm form = new BookingForm();
-        form.setRoomTypeId(typeId); form.setCheckInDate(LocalDate.of(2026, 11, 25));
-        form.setCheckOutDate(LocalDate.of(2026, 11, 27)); form.setGuestCount(1);
+        LocalDate checkIn = LocalDate.now().plusDays(5);
+        form.setRoomTypeId(typeId); form.setCheckInDate(checkIn);
+        form.setCheckOutDate(checkIn.plusDays(2)); form.setGuestCount(1);
         form.setGuestName("Guest"); form.setGuestPhone("0900000000"); form.setNearCheckInConfirmed(true);
         return form;
     }

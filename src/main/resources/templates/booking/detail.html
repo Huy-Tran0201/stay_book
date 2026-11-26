@@ -23,6 +23,12 @@
     <div th:if="${message}" class="alert alert-danger border-0 shadow-sm mb-3" th:text="${message}"></div>
     <div th:if="${param.cancelled}" class="alert alert-success border-0 shadow-sm mb-3">Đã gửi yêu cầu hủy đặt phòng thành công.</div>
 
+    <div th:if="${booking.status.name() == 'EXPIRED'}" class="alert alert-warning border-0 shadow-sm mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span class="text-danger fw-semibold" th:text="#{booking.expired.notice}">Đặt phòng đã hết hạn giữ chỗ. Vui lòng đặt lại.</span>
+        <a th:href="@{/booking/new(roomTypeId=${booking.roomType.id},checkIn=${booking.checkInDate},checkOut=${booking.checkOutDate},guests=${booking.guestCount})}"
+           class="btn btn-sm btn-danger" th:text="#{booking.rebook}">Đặt lại</a>
+    </div>
+
     <div class="row g-4">
         <!-- Left: Details, Nights & Payments -->
         <div class="col-lg-7">

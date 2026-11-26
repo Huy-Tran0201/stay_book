@@ -20,7 +20,7 @@ public class BookingStateMachine {
         Booking booking = owned(code, actor);
         if (booking.getStatus() != BookingStatus.PENDING_DEPOSIT)
             throw new BusinessException("Đặt phòng không còn ở trạng thái chờ cọc.");
-        if (booking.getHoldExpiresAt() != null && LocalDateTime.now(clock).isAfter(booking.getHoldExpiresAt()))
+        if (booking.getHoldExpiresAt() != null && !LocalDateTime.now(clock).isBefore(booking.getHoldExpiresAt()))
             throw new BusinessException("Thời gian giữ chỗ đã hết. Vui lòng đặt lại.");
         return transition(booking, BookingStatus.AWAITING_CONFIRMATION, actor.getEmail(), "Khách báo đã chuyển khoản");
     }

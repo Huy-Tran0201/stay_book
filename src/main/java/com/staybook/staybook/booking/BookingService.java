@@ -131,17 +131,35 @@ public class BookingService {
             .sum();
     }
 
-    @Transactional
-    @Scheduled(fixedDelay = 60000)
-    public void expirePendingBookings() {
-        LocalDateTime now = LocalDateTime.now(clock);
-        for (Booking booking : bookingRepository.findByStatusAndHoldExpiresAtBefore(
-                BookingStatus.PENDING_DEPOSIT, now)) {
-            booking.changeStatus(BookingStatus.EXPIRED);
-            bookingRepository.save(booking);
-            eventRepository.save(new BookingEvent(booking, BookingStatus.PENDING_DEPOSIT,
-                BookingStatus.EXPIRED, "SYSTEM", "Hết hạn giữ chỗ", now));
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
+    public boolean expireBooking(Long bookingId, LocalDateTime now) {
+        Optional<Booking> optional = bookingRepository.findByIdForUpdate(bookingId);
+        if (optional.isEmpty()) {
+            return false;
         }
+        Booking booking = optional.get();
+        if (booking.getStatus() != BookingStatus.PENDING_DEPOSIT) {
+            return false;
+        }
+        if (booking.getHoldExpiresAt() != null && !booking.getHoldExpiresAt().isBefore(now)) {
+            return false;
+        }
+        booking.changeStatus(BookingStatus.EXPIRED);
+        bookingRepository.save(booking);
+        eventRepository.save(new BookingEvent(
+            booking,
+            BookingStatus.PENDING_DEPOSIT,
+            BookingStatus.EXPIRED,
+            "SYSTEM",
+            "Hết hạn giữ chỗ",
+            now
+        ));
+        return true;
+    }
+
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
+    public boolean expireBooking(Long bookingId) {
+        return expireBooking(bookingId, LocalDateTime.now(clock));
     }
 
     private void validateDates(LocalDate in, LocalDate out) {

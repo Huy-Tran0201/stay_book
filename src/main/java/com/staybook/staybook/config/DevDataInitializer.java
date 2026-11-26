@@ -51,8 +51,13 @@ public class DevDataInitializer {
                 new Setting("bank.account", "0000000000"),
                 new Setting("bank.holder", "STAYBOOK"));
             for (Setting setting : defaults) {
-                if (settingRepository.findByKey(setting.getKey()).isEmpty()) {
+                var existing = settingRepository.findByKey(setting.getKey());
+                if (existing.isEmpty()) {
                     settingRepository.save(setting);
+                } else if ("hold.minutes".equals(setting.getKey()) && "1".equals(existing.get().getValue())) {
+                    Setting s = existing.get();
+                    s.setValue("30");
+                    settingRepository.save(s);
                 }
             }
         };

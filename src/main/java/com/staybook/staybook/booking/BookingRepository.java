@@ -17,6 +17,11 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     @EntityGraph(attributePaths = {"user", "room", "roomType"})
     @Query("select b from Booking b where b.code = :code")
     java.util.Optional<Booking> findByCodeForUpdate(@Param("code") String code);
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @EntityGraph(attributePaths = {"user", "room", "roomType"})
+    @Query("select b from Booking b where b.id = :id")
+    java.util.Optional<Booking> findByIdForUpdate(@Param("id") Long id);
+    @EntityGraph(attributePaths = {"roomType", "room", "user"})
     java.util.List<Booking> findByUserIdOrderByCreatedAtDesc(Long userId);
     java.util.List<Booking> findByStatusAndHoldExpiresAtBefore(BookingStatus status, java.time.LocalDateTime time);
     long countByUserIdAndStatusIn(Long userId, Collection<BookingStatus> statuses);

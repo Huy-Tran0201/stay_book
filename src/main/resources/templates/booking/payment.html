@@ -40,6 +40,12 @@
                 Không thể ghi nhận thông báo chuyển khoản. Vui lòng kiểm tra bạn đang đăng nhập đúng tài khoản đã đặt phòng và thời gian giữ chỗ chưa hết.
             </div>
 
+            <div th:if="${booking.status.name() == 'EXPIRED'}" class="alert alert-warning border-0 shadow-sm mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <span class="text-danger fw-semibold" th:text="#{booking.expired.notice}">Đặt phòng đã hết hạn giữ chỗ. Vui lòng đặt lại.</span>
+                <a th:href="@{/booking/new(roomTypeId=${booking.roomType.id},checkIn=${booking.checkInDate},checkOut=${booking.checkOutDate},guests=${booking.guestCount})}"
+                   class="btn btn-sm btn-danger" th:text="#{booking.rebook}">Đặt lại</a>
+            </div>
+
             <!-- Countdown Timer Banner -->
             <div class="card p-3 mb-4 border-0 shadow-sm bg-light" style="border: 1px solid var(--sb-border) !important;">
                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
