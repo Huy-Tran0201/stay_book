@@ -21,4 +21,19 @@ public class CancellationPolicy {
         }
         return 0;
     }
+
+    public long facilityCancelRefund(Booking booking, long recordedDepositAmount) {
+        if (booking == null || booking.getStatus() == BookingStatus.PENDING_DEPOSIT) {
+            return 0;
+        }
+        return Math.max(0, recordedDepositAmount);
+    }
+
+    public long refundEligibleAmount(Booking booking, CancelCause cause, LocalDateTime cancelAt,
+                                     long refundHours, long recordedDepositAmount) {
+        if (cause == CancelCause.FACILITY_CANCEL) {
+            return facilityCancelRefund(booking, recordedDepositAmount);
+        }
+        return refundEligibleAmount(booking, cancelAt, refundHours, recordedDepositAmount);
+    }
 }

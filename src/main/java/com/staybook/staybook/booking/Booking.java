@@ -61,13 +61,35 @@ public class Booking {
     public CancelCause getCancelCause() { return cancelCause; }
     public String getCancelReason() { return cancelReason; }
     public LocalDateTime getCancelledAt() { return cancelledAt; }
+    public String getIdDocumentNote() { return idDocumentNote; }
+    public LocalDateTime getCheckedInAt() { return checkedInAt; }
+    public LocalDateTime getCheckedOutAt() { return checkedOutAt; }
     public LocalDate getCheckInDate() { return checkInDate; } public LocalDate getCheckOutDate() { return checkOutDate; }
     public BookingStatus getStatus() { return status; } public void setUser(User v) { user = v; }
     public void setGuestCount(int v) { guestCount = v; } public void setNote(String v) { note = v; }
     public void setGuestName(String v) { guestName = v; } public void setGuestPhone(String v) { guestPhone = v; }
     public void setGuestEmail(String v) { guestEmail = v; }
     public void setHoldExpiresAt(LocalDateTime v) { holdExpiresAt = v; }
+    public void setIdDocumentNote(String v) { idDocumentNote = v; }
+    public void setCheckedInAt(LocalDateTime v) { checkedInAt = v; }
+    public void setCheckedOutAt(LocalDateTime v) { checkedOutAt = v; }
+    public void setRefundEligibleAmount(long v) { refundEligibleAmount = v; }
+    public void setRefundCheckNeeded(boolean v) { refundCheckNeeded = v; }
     public void changeStatus(BookingStatus v) { status = v; }
+    public void checkIn(String idDocNote, LocalDateTime at) {
+        idDocumentNote = idDocNote;
+        checkedInAt = at;
+        status = BookingStatus.CHECKED_IN;
+    }
+    public void checkOut(LocalDateTime at) {
+        checkedOutAt = at;
+        status = BookingStatus.CHECKED_OUT;
+    }
+    public void markNoShow(LocalDateTime at) {
+        status = BookingStatus.NO_SHOW;
+        refundEligibleAmount = 0;
+        refundCheckNeeded = false;
+    }
     public void cancel(CancelCause cause, String reason, LocalDateTime at, long refund, boolean checkNeeded) {
         cancelCause = cause; cancelReason = reason; cancelledAt = at;
         refundEligibleAmount = refund; refundCheckNeeded = checkNeeded; status = BookingStatus.CANCELLED;

@@ -104,6 +104,62 @@ public class PaymentService {
         return booking;
     }
 
+    @Transactional
+    public Surcharge addSurcharge(String code, String name, long amount, User actor) {
+        requireStaff(actor);
+        if (name == null || name.isBlank()) {
+            throw new BusinessException("Tên phụ phí không được để trống.");
+        }
+        if (amount <= 0) {
+            throw new BusinessException("Số tiền phụ phí phải lớn hơn 0.");
+        }
+        Booking booking = bookingRepository.findByCodeForUpdate(code)
+            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đặt phòng."));
+        if (EnumSet.of(BookingStatus.CANCELLED, BookingStatus.CHECKED_OUT,
+                BookingStatus.NO_SHOW, BookingStatus.EXPIRED).contains(booking.getStatus())) {
+            throw new BusinessException("Không thể thêm phụ phí cho đặt phòng ở trạng thái này.");
+        }
+        LocalDateTime now = LocalDateTime.now(clock);
+        Surcharge surcharge = surchargeRepository.save(
+            new Surcharge(booking, name.trim(), amount, actor, now));
+        auditService.record(actor, "ADD_SURCHARGE", "BOOKING", booking.getId(),
+            "Thêm phụ phí " + name.trim() + " " + amount + " đồng cho đặt phòng " + booking.getCode());
+        return surcharge;
+    }
+
+    @Transactional
+    public Payment addPayment(String code, PaymentType type, long amount,
+                              PaymentMethod method, String note, User actor) {
+        requireStaff(actor);
+        if (amount <= 0) {
+            throw new BusinessException("Số tiền phải lớn hơn 0.");
+        }
+        if (method == null) {
+            throw new BusinessException("Hình thức thanh toán không hợp lệ.");
+        }
+        Booking booking = bookingRepository.findByCodeForUpdate(code)
+            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đặt phòng."));
+        PaymentType paymentType = (type != null) ? type : PaymentType.EXTRA_PAYMENT;
+        if (paymentType == PaymentType.REFUND) {
+            PaymentLedger currentLedger = ledger(booking);
+            if (currentLedger.refundDue() <= 0) {
+                throw new BusinessException("Đặt phòng không có số tiền cần hoàn.");
+            }
+            if (amount > currentLedger.refundDue()) {
+                throw new BusinessException("Số tiền hoàn vượt quá số tiền cần hoàn.");
+            }
+        }
+        String safeNote = (note != null && !note.isBlank()) ? note.trim()
+            : (paymentType == PaymentType.EXTRA_PAYMENT ? "Thanh toán thêm" : paymentType.name());
+        return recordPayment(booking, paymentType, amount, method, safeNote, actor);
+    }
+
+    @Transactional
+    public Payment recordRefund(String code, long amount, PaymentMethod method, String note, User actor) {
+        return addPayment(code, PaymentType.REFUND, amount, method,
+            (note != null && !note.isBlank()) ? note : "Hoàn tiền cho khách", actor);
+    }
+
     private void requireStaff(User actor) {
         if (actor == null || (actor.getRole() != Role.STAFF && actor.getRole() != Role.ADMIN))
             throw new BusinessException("Chỉ lễ tân hoặc quản trị mới được ghi nhận thanh toán.");

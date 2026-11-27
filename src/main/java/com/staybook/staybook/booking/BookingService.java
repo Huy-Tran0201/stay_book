@@ -11,9 +11,14 @@ import com.staybook.staybook.payment.Payment;
 import com.staybook.staybook.payment.PaymentRepository;
 import com.staybook.staybook.payment.PaymentType;
 import com.staybook.staybook.common.exception.ResourceNotFoundException;
+import com.staybook.staybook.common.util.MoneyFormat;
+import com.staybook.staybook.payment.PaymentLedger;
+import com.staybook.staybook.payment.PaymentService;
+import com.staybook.staybook.user.Role;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -35,12 +40,16 @@ public class BookingService {
     private final CancellationPolicy cancellationPolicy;
     private final AuditService auditService;
     private final PaymentRepository paymentRepository;
+    private final BookingStateMachine stateMachine;
+    private final PaymentService paymentService;
 
+    @Autowired
     public BookingService(BookingRepository bookingRepository, BookingNightRepository nightRepository,
             BookingEventRepository eventRepository, RoomTypeRepository roomTypeRepository,
             RoomRepository roomRepository, PricingService pricingService,
             SettingRepository settingRepository, Clock clock, AuditService auditService,
-            PaymentRepository paymentRepository) {
+            PaymentRepository paymentRepository, BookingStateMachine stateMachine,
+            PaymentService paymentService) {
         this.bookingRepository = bookingRepository; this.nightRepository = nightRepository;
         this.eventRepository = eventRepository; this.roomTypeRepository = roomTypeRepository;
         this.roomRepository = roomRepository; this.pricingService = pricingService;
@@ -48,6 +57,17 @@ public class BookingService {
         this.cancellationPolicy = new CancellationPolicy();
         this.auditService = auditService;
         this.paymentRepository = paymentRepository;
+        this.stateMachine = stateMachine;
+        this.paymentService = paymentService;
+    }
+
+    public BookingService(BookingRepository bookingRepository, BookingNightRepository nightRepository,
+            BookingEventRepository eventRepository, RoomTypeRepository roomTypeRepository,
+            RoomRepository roomRepository, PricingService pricingService,
+            SettingRepository settingRepository, Clock clock, AuditService auditService,
+            PaymentRepository paymentRepository) {
+        this(bookingRepository, nightRepository, eventRepository, roomTypeRepository, roomRepository,
+             pricingService, settingRepository, clock, auditService, paymentRepository, null, null);
     }
 
     @Transactional
@@ -124,6 +144,20 @@ public class BookingService {
             recordedDepositAmount(booking));
     }
 
+    @Transactional(readOnly = true)
+    public long previewCancelRefund(Booking booking, CancelCause cause) {
+        if (booking == null || !EnumSet.of(BookingStatus.PENDING_DEPOSIT, BookingStatus.AWAITING_CONFIRMATION,
+                BookingStatus.CONFIRMED).contains(booking.getStatus())) {
+            return 0;
+        }
+        long recorded = recordedDepositAmount(booking);
+        if (cause == CancelCause.FACILITY_CANCEL) {
+            return cancellationPolicy.facilityCancelRefund(booking, recorded);
+        }
+        return cancellationPolicy.refundEligibleAmount(
+            booking, LocalDateTime.now(clock), setting("refund.hours", 48), recorded);
+    }
+
     private long recordedDepositAmount(Booking booking) {
         return paymentRepository.findByBookingIdOrderByRecordedAtAsc(booking.getId()).stream()
             .filter(payment -> payment.getType() == PaymentType.DEPOSIT)
@@ -160,6 +194,126 @@ public class BookingService {
     @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
     public boolean expireBooking(Long bookingId) {
         return expireBooking(bookingId, LocalDateTime.now(clock));
+    }
+
+    @Transactional
+    public Booking checkIn(String code, String idDocumentType, String idDocumentLast4, User staff) {
+        requireStaff(staff);
+        Booking booking = bookingRepository.findByCodeForUpdate(code)
+            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đặt phòng."));
+        if (booking.getStatus() == BookingStatus.NO_SHOW) {
+            throw new BusinessException("Đặt phòng đã không đến, không thể nhận phòng.");
+        }
+        if (booking.getStatus() != BookingStatus.CONFIRMED) {
+            throw new BusinessException("Đặt phòng chưa được xác nhận cọc.");
+        }
+        LocalDate today = LocalDate.now(clock);
+        if (today.isBefore(booking.getCheckInDate())) {
+            throw new BusinessException("Chưa đến ngày nhận phòng.");
+        }
+        String idDocumentNote = formatIdDocumentNote(idDocumentType, idDocumentLast4);
+        booking.setIdDocumentNote(idDocumentNote);
+        LocalDateTime now = LocalDateTime.now(clock);
+        booking.setCheckedInAt(now);
+        stateMachine.transition(booking, BookingStatus.CHECKED_IN, staff.getEmail(), "Lễ tân thực hiện nhận phòng");
+        auditService.record(staff, "CHECK_IN", "BOOKING", booking.getId(),
+            "Nhận phòng cho đặt phòng " + booking.getCode() + (idDocumentNote != null ? " (" + idDocumentNote + ")" : ""));
+        return booking;
+    }
+
+    @Transactional
+    public Booking checkOut(String code, User staff) {
+        requireStaff(staff);
+        Booking booking = bookingRepository.findByCodeForUpdate(code)
+            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đặt phòng."));
+        if (booking.getStatus() != BookingStatus.CHECKED_IN) {
+            throw new BusinessException("Chuyển trạng thái đặt phòng không hợp lệ.");
+        }
+        PaymentLedger ledger = paymentService.ledger(booking);
+        if (ledger.remaining() > 0) {
+            throw new BusinessException("Còn phải thu " + MoneyFormat.formatWithUnit(ledger.remaining()) + ".");
+        }
+        if (ledger.remaining() < 0) {
+            throw new BusinessException("Còn phải hoàn lại cho khách " + MoneyFormat.formatWithUnit(-ledger.remaining()) + ".");
+        }
+        LocalDateTime now = LocalDateTime.now(clock);
+        booking.setCheckedOutAt(now);
+        stateMachine.transition(booking, BookingStatus.CHECKED_OUT, staff.getEmail(), "Lễ tân thực hiện trả phòng");
+        auditService.record(staff, "CHECK_OUT", "BOOKING", booking.getId(),
+            "Trả phòng cho đặt phòng " + booking.getCode());
+        return booking;
+    }
+
+    @Transactional
+    public Booking staffCancel(String code, CancelCause cause, String reason, User staff) {
+        requireStaff(staff);
+        Booking booking = bookingRepository.findByCodeForUpdate(code)
+            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đặt phòng."));
+        if (!EnumSet.of(BookingStatus.PENDING_DEPOSIT, BookingStatus.AWAITING_CONFIRMATION,
+                BookingStatus.CONFIRMED).contains(booking.getStatus())) {
+            throw new BusinessException("Đặt phòng này không thể hủy.");
+        }
+        CancelCause actualCause = (cause != null) ? cause : CancelCause.GUEST_REQUEST;
+        LocalDateTime now = LocalDateTime.now(clock);
+        long recordedDeposit = recordedDepositAmount(booking);
+        long refund;
+        if (actualCause == CancelCause.FACILITY_CANCEL) {
+            refund = cancellationPolicy.facilityCancelRefund(booking, recordedDeposit);
+        } else {
+            refund = cancellationPolicy.refundEligibleAmount(booking, now, setting("refund.hours", 48), recordedDeposit);
+        }
+        boolean checkNeeded = booking.getStatus() == BookingStatus.AWAITING_CONFIRMATION && recordedDeposit == 0;
+        String safeReason = (reason != null && !reason.isBlank()) ? reason.trim()
+            : (actualCause == CancelCause.FACILITY_CANCEL ? "Cơ sở hủy đặt phòng" : "Khách yêu cầu hủy đặt phòng");
+        stateMachine.transition(booking, BookingStatus.CANCELLED, staff.getEmail(), safeReason);
+        booking.cancel(actualCause, safeReason, now, refund, checkNeeded);
+        bookingRepository.save(booking);
+        auditService.record(staff, "CANCEL_BOOKING", "BOOKING", booking.getId(),
+            "Lễ tân hủy đặt phòng " + booking.getCode() + " do " + (actualCause == CancelCause.FACILITY_CANCEL ? "cơ sở hủy" : "khách yêu cầu") + ", số tiền cần hoàn: " + refund + " đồng");
+        return booking;
+    }
+
+    @Transactional
+    public Booking noShow(String code, User staff) {
+        requireStaff(staff);
+        Booking booking = bookingRepository.findByCodeForUpdate(code)
+            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đặt phòng."));
+        if (booking.getStatus() != BookingStatus.CONFIRMED) {
+            throw new BusinessException("Đặt phòng không ở trạng thái đã xác nhận.");
+        }
+        LocalDateTime noShowThreshold = booking.getCheckInDate().plusDays(1).atStartOfDay();
+        LocalDateTime now = LocalDateTime.now(clock);
+        if (now.isBefore(noShowThreshold)) {
+            throw new BusinessException("Chỉ được ghi nhận không đến từ 00:00 ngày kế tiếp ngày nhận phòng.");
+        }
+        stateMachine.transition(booking, BookingStatus.NO_SHOW, staff.getEmail(), "Khách không đến nhận phòng");
+        booking.markNoShow(now);
+        bookingRepository.save(booking);
+        auditService.record(staff, "NO_SHOW", "BOOKING", booking.getId(),
+            "Ghi nhận không đến cho đặt phòng " + booking.getCode());
+        return booking;
+    }
+
+    private String formatIdDocumentNote(String type, String last4) {
+        String cleanType = (type != null && !type.isBlank()) ? type.trim() : null;
+        String cleanLast4 = (last4 != null && !last4.isBlank()) ? last4.trim() : null;
+        if (cleanLast4 != null && cleanLast4.length() > 4) {
+            cleanLast4 = cleanLast4.substring(cleanLast4.length() - 4);
+        }
+        if (cleanType != null && cleanLast4 != null) {
+            return cleanType + " - ****" + cleanLast4;
+        } else if (cleanType != null) {
+            return cleanType;
+        } else if (cleanLast4 != null) {
+            return "Giấy tờ - ****" + cleanLast4;
+        }
+        return null;
+    }
+
+    private void requireStaff(User actor) {
+        if (actor == null || (actor.getRole() != Role.STAFF && actor.getRole() != Role.ADMIN)) {
+            throw new BusinessException("Chỉ lễ tân hoặc quản trị mới được thực hiện thao tác này.");
+        }
     }
 
     private void validateDates(LocalDate in, LocalDate out) {

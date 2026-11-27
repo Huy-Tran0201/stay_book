@@ -33,13 +33,15 @@ public class StaffController {
     private final PaymentRepository payments;
     private final SurchargeRepository surcharges;
     private final PaymentService paymentService;
+    private final BookingService bookingService;
     private final UserRepository users;
     private final Clock clock;
 
     public StaffController(BookingRepository bookings, BookingNightRepository nights,
             BookingEventRepository events, RoomTypeRepository roomTypes,
             PaymentRepository payments, SurchargeRepository surcharges,
-            PaymentService paymentService, UserRepository users, Clock clock) {
+            PaymentService paymentService, BookingService bookingService,
+            UserRepository users, Clock clock) {
         this.bookings = bookings;
         this.nights = nights;
         this.events = events;
@@ -47,6 +49,7 @@ public class StaffController {
         this.payments = payments;
         this.surcharges = surcharges;
         this.paymentService = paymentService;
+        this.bookingService = bookingService;
         this.users = users;
         this.clock = clock;
     }
@@ -137,6 +140,105 @@ public class StaffController {
         return "redirect:/staff/bookings/" + code;
     }
 
+    @PostMapping("/staff/bookings/{code}/check-in")
+    public String checkIn(@PathVariable String code,
+            @RequestParam(required = false) String idDocumentType,
+            @RequestParam(required = false) String idDocumentLast4,
+            Authentication auth, RedirectAttributes redirectAttributes) {
+        try {
+            bookingService.checkIn(code, idDocumentType, idDocumentLast4, currentUser(auth));
+            redirectAttributes.addFlashAttribute("successMessage", "Nhận phòng thành công.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/staff/bookings/" + code;
+    }
+
+    @PostMapping("/staff/bookings/{code}/surcharges")
+    public String addSurcharge(@PathVariable String code,
+            @RequestParam String name,
+            @RequestParam long amount,
+            Authentication auth, RedirectAttributes redirectAttributes) {
+        try {
+            paymentService.addSurcharge(code, name, amount, currentUser(auth));
+            redirectAttributes.addFlashAttribute("successMessage", "Đã thêm phụ phí thành công.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/staff/bookings/" + code;
+    }
+
+    @PostMapping("/staff/bookings/{code}/payments")
+    public String addPayment(@PathVariable String code,
+            @RequestParam(defaultValue = "EXTRA_PAYMENT") com.staybook.staybook.payment.PaymentType type,
+            @RequestParam long amount,
+            @RequestParam com.staybook.staybook.payment.PaymentMethod method,
+            @RequestParam(required = false) String note,
+            Authentication auth, RedirectAttributes redirectAttributes) {
+        try {
+            paymentService.addPayment(code, type, amount, method, note, currentUser(auth));
+            redirectAttributes.addFlashAttribute("successMessage",
+                type == com.staybook.staybook.payment.PaymentType.REFUND
+                    ? "Đã ghi nhận hoàn tiền thành công." : "Đã ghi nhận thanh toán thành công.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/staff/bookings/" + code;
+    }
+
+    @PostMapping("/staff/bookings/{code}/check-out")
+    public String checkOut(@PathVariable String code,
+            Authentication auth, RedirectAttributes redirectAttributes) {
+        try {
+            bookingService.checkOut(code, currentUser(auth));
+            redirectAttributes.addFlashAttribute("successMessage", "Trả phòng thành công.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/staff/bookings/" + code;
+    }
+
+    @PostMapping("/staff/bookings/{code}/cancel")
+    public String cancel(@PathVariable String code,
+            @RequestParam CancelCause cause,
+            @RequestParam(required = false) String reason,
+            Authentication auth, RedirectAttributes redirectAttributes) {
+        try {
+            bookingService.staffCancel(code, cause, reason, currentUser(auth));
+            redirectAttributes.addFlashAttribute("successMessage", "Đã hủy đặt phòng thành công.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/staff/bookings/" + code;
+    }
+
+    @PostMapping("/staff/bookings/{code}/refund")
+    public String refund(@PathVariable String code,
+            @RequestParam long amount,
+            @RequestParam com.staybook.staybook.payment.PaymentMethod method,
+            @RequestParam(required = false) String note,
+            Authentication auth, RedirectAttributes redirectAttributes) {
+        try {
+            paymentService.recordRefund(code, amount, method, note, currentUser(auth));
+            redirectAttributes.addFlashAttribute("successMessage", "Đã ghi nhận hoàn tiền thành công.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/staff/bookings/" + code;
+    }
+
+    @PostMapping("/staff/bookings/{code}/no-show")
+    public String noShow(@PathVariable String code,
+            Authentication auth, RedirectAttributes redirectAttributes) {
+        try {
+            bookingService.noShow(code, currentUser(auth));
+            redirectAttributes.addFlashAttribute("successMessage", "Đã ghi nhận khách không đến.");
+        } catch (BusinessException ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+        }
+        return "redirect:/staff/bookings/" + code;
+    }
+
     private void populateDetail(Model model, Booking booking) {
         model.addAttribute("booking", booking);
         model.addAttribute("nights", nights.findByBookingIdOrderByDateAsc(booking.getId()));
@@ -144,6 +246,14 @@ public class StaffController {
         model.addAttribute("surcharges", surcharges.findByBookingIdOrderByRecordedAtAsc(booking.getId()));
         model.addAttribute("events", events.findByBookingIdOrderByAtAsc(booking.getId()));
         model.addAttribute("ledger", paymentService.ledger(booking));
+        LocalDate today = LocalDate.now(clock);
+        LocalDateTime now = LocalDateTime.now(clock);
+        model.addAttribute("today", today);
+        model.addAttribute("now", now);
+        model.addAttribute("canCheckIn", booking.getStatus() == BookingStatus.CONFIRMED && !today.isBefore(booking.getCheckInDate()));
+        model.addAttribute("canNoShow", booking.getStatus() == BookingStatus.CONFIRMED && !now.isBefore(booking.getCheckInDate().plusDays(1).atStartOfDay()));
+        model.addAttribute("guestCancelRefund", bookingService.previewCancelRefund(booking, CancelCause.GUEST_REQUEST));
+        model.addAttribute("facilityCancelRefund", bookingService.previewCancelRefund(booking, CancelCause.FACILITY_CANCEL));
     }
 
     private User currentUser(Authentication auth) {
